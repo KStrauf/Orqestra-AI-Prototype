@@ -1,0 +1,14 @@
+{
+  "name": "orqestra-ai",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": ["apps/web", "packages/agents", "packages/cli", "packages/schemas", "packages/shared"],
+  "scripts": {
+    "dev:web": "npm --workspace apps/web run dev",
+    "build:web": "npm --workspace apps/web run build",
+    "typecheck": "npm --workspaces run typecheck",
+    "orqestra": "npm --workspace packages/cli run start"
+  },
+  "devDependencies": {"typescript": "^5.6.3"}
+}

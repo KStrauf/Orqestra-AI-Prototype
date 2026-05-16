@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+.env.local
+.venv/
+__pycache__/
+*.pyc
+*.db
+*.sqlite3
+.DS_Store
+packages/agents/runtime/
+apps/api/alembic/versions/*.py

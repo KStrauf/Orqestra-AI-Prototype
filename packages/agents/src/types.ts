@@ -1,0 +1,1 @@
+export type AgentConfig={name:string;displayName:string;description:string;model:'fast'|'advanced'|'reasoning';color:string;memoryScope:'session'|'project'|'audit';axioms:string[];commands:string[];skills:string[];profilePath:string;outputProtocol:string;canDispatch:boolean;canImplement:boolean};export const defineAgent=(c:AgentConfig):AgentConfig=>Object.freeze(c);
