@@ -1,4 +1,4 @@
-# OrqestraAI
+His# OrqestraAI
 
 —currently in development
 
@@ -43,4 +43,4 @@ After seeding:
 
 ## Safety Boundary
 
-This project uses mock business operations and finance data. It does not approve payments, contracts, compliance closure, or real financial actions.
+This project uses mock data not intended for operations, finance, or business use.
