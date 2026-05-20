@@ -1,6 +1,6 @@
-His# OrqestraAI
+# OrqestraAI
 
-—currently in development
+
 
 It includes:
 - Python FastAPI backend with SQLAlchemy models, JWT authentication, and mock AI analysis persistence.
