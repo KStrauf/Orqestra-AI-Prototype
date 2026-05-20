@@ -38,8 +38,8 @@ npm run dev:web
 ## Local Admin
 
 After seeding:
-- username: `admin`
-- password: `password123`
+- username: ``
+- password: ``
 
 ## Safety Boundary
 
