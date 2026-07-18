@@ -19,6 +19,9 @@ class Settings:
     data_dir: Path           # generated run records + index - gitignored
     ollama_host: str
     provider: str = "mock"
+    ollama_model: str = "qwen3:1.7b"
+    ollama_num_predict: int = 120
+    ollama_think: bool = False
 
     # How much feedback history to feed the model on the next run.
     # These are the two dials of the voice-learning loop (Step 11).
@@ -48,4 +51,7 @@ def load_settings() -> Settings:
         data_dir=Path(os.getenv("ORQ_DATA_DIR", "data")).resolve(),
         ollama_host=os.getenv("OLLAMA_HOST", "http://localhost:11434"),
         provider=os.getenv("ORQ_PROVIDER", "mock"),
+        ollama_model=os.getenv("ORQ_OLLAMA_MODEL", "qwen3:1.7b"),
+        ollama_num_predict=int(os.getenv("ORQ_OLLAMA_NUM_PREDICT", "120")),
+        ollama_think=os.getenv("ORQ_OLLAMA_THINK", "false").lower() == "true",
     )

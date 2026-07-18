@@ -82,7 +82,13 @@ def cmd_log(settings, run_id: str | None) -> int:
 
 def cmd_ping(settings, model: str, prompt: str) -> int:
     """Send one prompt through the configured provider boundary."""
-    provider = get_provider(getattr(settings, "provider", "mock"))
+    provider = get_provider(
+        getattr(settings, "provider", "mock"),
+        ollama_host=getattr(settings, "ollama_host", "http://localhost:11434"),
+        ollama_model=getattr(settings, "ollama_model", "qwen3:1.7b"),
+        ollama_num_predict=getattr(settings, "ollama_num_predict", 120),
+        ollama_think=getattr(settings, "ollama_think", False),
+    )
     reply = provider.complete(
         system_prompt="You are a concise diagnostic assistant.",
         user_prompt=prompt,
@@ -103,6 +109,13 @@ def cmd_studio_demo(
     material_name: str,
 ) -> int:
     """Run the local Studio workflow and print its reviewable result."""
+    provider = get_provider(
+        getattr(settings, "provider", "mock"),
+        ollama_host=getattr(settings, "ollama_host", "http://localhost:11434"),
+        ollama_model=getattr(settings, "ollama_model", "qwen3:1.7b"),
+        ollama_num_predict=getattr(settings, "ollama_num_predict", 120),
+        ollama_think=getattr(settings, "ollama_think", False),
+    )
     result = run_content_workflow(
         settings.runs_dir,
         ContentWorkflowRequest(
@@ -110,6 +123,7 @@ def cmd_studio_demo(
             material=material,
             material_name=material_name,
         ),
+        provider=provider,
     )
     record = runrecord.read(settings.runs_dir, result.record.run_id)
 

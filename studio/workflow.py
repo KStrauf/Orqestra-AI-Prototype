@@ -12,7 +12,7 @@ import time
 from typing import Mapping
 
 from engine import runrecord
-from engine.providers import MockProvider, ProviderReply, TextProvider
+from engine.providers import MockProvider, ProviderReply, TextProvider, resolve_model
 from studio.manifest import (
     AgentManifest,
     load_builtin_agents,
@@ -76,6 +76,7 @@ def run_content_workflow(
     started_clock = time.monotonic()
 
     architect = compiled.agent_for(steps["architect"])
+    architect_model = resolve_model(provider, architect.model)
     plan_reply = provider.complete(
         system_prompt=architect.instructions,
         user_prompt=(
@@ -83,11 +84,12 @@ def run_content_workflow(
             "Available templates: content_workflow\n"
             "Return a small agent plan."
         ),
-        model=architect.model,
+        model=architect_model,
         temperature=architect.temperature,
     )
 
     specialist = compiled.agent_for(steps["specialist"])
+    specialist_model = resolve_model(provider, specialist.model)
     drafts: list[runrecord.Draft] = []
     replies = [plan_reply]
     for index, variant in enumerate(request.variants, start=1):
@@ -98,7 +100,7 @@ def run_content_workflow(
                 f"Material: {request.material}\n"
                 f"Variant: {variant}"
             ),
-            model=specialist.model,
+            model=specialist_model,
             temperature=specialist.temperature,
         )
         replies.append(draft_reply)
@@ -113,6 +115,7 @@ def run_content_workflow(
         )
 
     reviewer = compiled.agent_for(steps["reviewer"])
+    reviewer_model = resolve_model(provider, reviewer.model)
     review_reply = provider.complete(
         system_prompt=reviewer.instructions,
         user_prompt=(
@@ -122,7 +125,7 @@ def run_content_workflow(
             "tone problems, and format errors.\n"
             f"Drafts:\n{chr(10).join(draft.text for draft in drafts)}"
         ),
-        model=reviewer.model,
+        model=reviewer_model,
         temperature=reviewer.temperature,
     )
     replies.append(review_reply)
@@ -142,7 +145,7 @@ def run_content_workflow(
         finished_at=finished_at,
         duration_ms=round((time.monotonic() - started_clock) * 1000),
         provider=provider.name,
-        model=specialist.model,
+        model=specialist_model,
         temperature=specialist.temperature,
         system_prompt=agents["orchestrator"].instructions,
         user_prompt=f"Goal: {request.goal}\nMaterial: {request.material}",
