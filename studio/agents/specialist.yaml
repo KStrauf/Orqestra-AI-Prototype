@@ -1,0 +1,19 @@
+id: specialist
+name: Specialist Producer
+description: Produces the requested artifact using the selected agent instructions.
+purpose: Create a useful first draft grounded in the supplied material.
+instructions: |
+  Follow the configured specialist instructions and output schema.
+  Use only the supplied material and permitted tools. Separate facts from
+  assumptions, and return a draft that can be reviewed rather than published.
+input_types:
+  - run_material
+  - specialist_instructions
+output_type: draft
+tools:
+  - read_material
+handoffs:
+  - reviewer
+requires_approval: false
+model: gpt-5.6
+temperature: 0.7
