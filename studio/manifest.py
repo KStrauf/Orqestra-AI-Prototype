@@ -1,6 +1,8 @@
 """Declarative runtime-agent manifests for Orqestra Studio."""
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+import hashlib
+import json
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -133,3 +135,13 @@ def load_manifests(directory: Path) -> dict[str, AgentManifest]:
 def load_builtin_agents() -> dict[str, AgentManifest]:
     """Load the four agents shipped with the Studio prototype."""
     return load_manifests(Path(__file__).parent / "agents")
+
+
+def manifest_fingerprint(manifests: Mapping[str, AgentManifest]) -> str:
+    """Fingerprint manifest contents, including instructions and policy."""
+    payload = json.dumps(
+        {agent_id: asdict(manifest) for agent_id, manifest in sorted(manifests.items())},
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()

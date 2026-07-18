@@ -12,6 +12,9 @@ class ManifestError(OrqError):
      """An agent.yaml is missing, malformed, or points at something that 
   doesn't exist."""
 
+class WorkflowError(OrqError):
+     """A Studio workflow is invalid or cannot be compiled safely."""
+
 class TemplateError(OrqError):
     """An output template (like social_post.yaml) is missing or malformed."""
 
