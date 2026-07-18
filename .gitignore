@@ -1,12 +1,22 @@
-node_modules/
-dist/
-.env
-.env.local
-.venv/
+# Python
 __pycache__/
 *.pyc
+.venv/
+*.egg-info/
+
+# Secrets. Never commit.
+.env
+.env.local
+
+# Generated. Run records, voice history, the SQLite index.
+# Rebuildable, and this is YOUR business data - it does not ship in a
+template.
+data/
+
+# Local databases
 *.db
 *.sqlite3
+
 .DS_Store
-packages/agents/runtime/
-apps/api/alembic/versions/*.py
+
+dev-team-agents
