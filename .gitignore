@@ -20,3 +20,7 @@ data/
 .DS_Store
 
 dev-team-agents
+
+# Frontend dependencies and build output
+web/node_modules/
+web/dist/
