@@ -7,6 +7,7 @@ import sys
 from engine import runrecord
 from engine.config import load_settings
 from engine.errors import DecisionError, OrqError
+from engine.providers import get_provider
 from studio.workflow import ContentWorkflowRequest, run_content_workflow
 
 def cmd_log(settings, run_id: str | None) -> int:
@@ -76,6 +77,22 @@ def cmd_log(settings, run_id: str | None) -> int:
         for p in r.published:
             print(f"  {p.draft_id}  {p.platform}  {p.url}")
 
+    return 0
+
+
+def cmd_ping(settings, model: str, prompt: str) -> int:
+    """Send one prompt through the configured provider boundary."""
+    provider = get_provider(getattr(settings, "provider", "mock"))
+    reply = provider.complete(
+        system_prompt="You are a concise diagnostic assistant.",
+        user_prompt=prompt,
+        model=model,
+        temperature=0.0,
+    )
+    print(f"provider {provider.name}")
+    print(f"model    {model}")
+    print(f"reply    {reply.text}")
+    print(f"usage    {reply.input_tokens} in / {reply.output_tokens} out")
     return 0
 
 
@@ -282,6 +299,8 @@ def main() -> int:
     settings = load_settings()
 
     try:
+        if args.command == "ping":
+            return cmd_ping(settings, args.model, args.prompt)
         if args.command == "log":
             return cmd_log(settings, args.run_id)
         if args.command == "studio" and args.studio_command == "demo":

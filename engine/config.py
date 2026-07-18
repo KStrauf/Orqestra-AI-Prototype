@@ -18,6 +18,7 @@ class Settings:
     business_dir: Path       # your agents, voice, inbox, outbox - the company
     data_dir: Path           # generated run records + index - gitignored
     ollama_host: str
+    provider: str = "mock"
 
     # How much feedback history to feed the model on the next run.
     # These are the two dials of the voice-learning loop (Step 11).
@@ -46,4 +47,5 @@ def load_settings() -> Settings:
 "business")).resolve(),
         data_dir=Path(os.getenv("ORQ_DATA_DIR", "data")).resolve(),
         ollama_host=os.getenv("OLLAMA_HOST", "http://localhost:11434"),
+        provider=os.getenv("ORQ_PROVIDER", "mock"),
     )
