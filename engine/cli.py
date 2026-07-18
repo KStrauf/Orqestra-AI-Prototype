@@ -1,11 +1,4 @@
-"""The `orq` command. Every subcommand is registered here.
-
-Right now they all raise NotImplementedError - that is deliberate. The
-commands
-appear in `orq --help` immediately, which gives you a visible map of what you
-are
-building. Each build step below fills one in.
-"""
+"""The ``orq`` command and its user-facing subcommands."""
 
 import argparse
 import sys
@@ -13,6 +6,7 @@ import sys
 from engine import runrecord
 from engine.config import load_settings
 from engine.errors import OrqError
+from studio.workflow import ContentWorkflowRequest, run_content_workflow
 
 def cmd_log(settings, run_id: str | None) -> int:
     """Showonerun record, or list them all.  
@@ -78,6 +72,36 @@ def cmd_log(settings, run_id: str | None) -> int:
 
     return 0
 
+
+def cmd_studio_demo(
+    settings,
+    goal: str,
+    material: str,
+    material_name: str,
+) -> int:
+    """Run the local Studio workflow and print its reviewable result."""
+    result = run_content_workflow(
+        settings.runs_dir,
+        ContentWorkflowRequest(
+            goal=goal,
+            material=material,
+            material_name=material_name,
+        ),
+    )
+
+    print(f"run      {result.record.run_id}")
+    print(f"saved    {result.path}")
+    print(f"agents   architect -> specialist -> reviewer")
+    print("\nAGENT PLAN")
+    print(_indent(result.agent_plan))
+    for draft in result.record.drafts:
+        print(f"\nDRAFT {draft.draft_id}   [{draft.variant}]")
+        print(_indent(draft.text))
+    print("\nREVIEW")
+    print(_indent(result.review_text))
+    print("\nNEXT     human approval required")
+    return 0
+
 def _indent(text: str, prefix:str = " | ") -> str:
     """Indent a blockso promptsare visually distinct from. the. metadata."""
     return "\n".join(prefix + line for line in text.splitlines())
@@ -126,6 +150,19 @@ def main() -> int:
     p_log = sub.add_parser("log", help="Show run records")
     p_log.add_argument("run_id", nargs="?", help="Omit to list all runs")
 
+    p_studio = sub.add_parser("studio", help="Run Orqestra Studio workflows")
+    studio_sub = p_studio.add_subparsers(dest="studio_command", required=True)
+    p_studio_demo = studio_sub.add_parser(
+        "demo", help="Run the local architect-specialist-reviewer workflow"
+    )
+    p_studio_demo.add_argument("goal", help="The outcome the workflow should produce")
+    p_studio_demo.add_argument(
+        "--material", required=True, help="Source material supplied to the workflow"
+    )
+    p_studio_demo.add_argument(
+        "--material-name", default="cli-material", help="Display name for the source material"
+    )
+
     # --- Step 13: close the loop -------------------------------------------
     p_publish = sub.add_parser("publish", help="Mark a draft as posted, with its URL")
     p_publish.add_argument("draft_id")
@@ -139,7 +176,14 @@ def main() -> int:
 
     try:
         if args.command == "log":
-            return cmd_log(settings,args.run_id)
+            return cmd_log(settings, args.run_id)
+        if args.command == "studio" and args.studio_command == "demo":
+            return cmd_studio_demo(
+                settings,
+                args.goal,
+                args.material,
+                args.material_name,
+            )
         
         raise NotImplementedError(f"'{args.command}' is not built yet. See the build plan.")
     except OrqError as e:
