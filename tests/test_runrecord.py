@@ -72,6 +72,7 @@ class RunRecordTests(unittest.TestCase):
         self.assertEqual(loaded.drafts, self.record.drafts)
         self.assertEqual(loaded.decisions, [decision])
         self.assertEqual(loaded.published, [publication])
+        self.assertEqual(loaded.status, "decided")
 
     def test_write_leaves_no_temporary_file(self) -> None:
         path = runrecord.write(self.runs_dir, self.record)

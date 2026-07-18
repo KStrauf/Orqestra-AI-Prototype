@@ -1,9 +1,16 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from dataclasses import replace
 
 from engine.errors import ManifestError
-from studio.manifest import AgentManifest, load_builtin_agents, load_manifest, load_manifests
+from studio.manifest import (
+    AgentManifest,
+    load_builtin_agents,
+    load_manifest,
+    load_manifests,
+    manifest_fingerprint,
+)
 
 
 class ManifestTests(unittest.TestCase):
@@ -76,6 +83,16 @@ handoffs:
 
             with self.assertRaisesRegex(ManifestError, "missing-agent"):
                 load_manifests(Path(temporary))
+
+    def test_manifest_fingerprint_changes_when_instructions_change(self) -> None:
+        agents = load_builtin_agents()
+        changed = dict(agents)
+        changed["specialist"] = replace(
+            changed["specialist"],
+            instructions=changed["specialist"].instructions + " Prefer concise output.",
+        )
+
+        self.assertNotEqual(manifest_fingerprint(agents), manifest_fingerprint(changed))
 
 
 if __name__ == "__main__":

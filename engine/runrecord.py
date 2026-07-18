@@ -16,7 +16,7 @@ import tempfile
 from typing import Any
 
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 # --- small helpers ---------------------------------------------------------
@@ -122,6 +122,9 @@ class RunRecord:
     usage: Usage | None = None
     drafts: list[Draft] = field(default_factory=list)
     error: str | None = None
+    status: str = "completed"
+    agent_plan: str | None = None
+    review: str | None = None
 
     # These fields are appended after the run completes.
     decisions: list[Decision] = field(default_factory=list)
@@ -195,6 +198,7 @@ def append_decision(runs_dir: Path, run_id: str, decision: Decision) -> None:
     """Append a human decision to an existing run record."""
     record = read(runs_dir, run_id)
     record.decisions.append(decision)
+    record.status = "decided"
     write(runs_dir, record)
 
 

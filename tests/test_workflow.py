@@ -23,6 +23,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(result.path, runrecord.run_path(runs_dir, result.record.run_id))
         self.assertEqual(loaded.provider, "mock")
         self.assertEqual(loaded.agent, "orchestrator")
+        self.assertEqual(loaded.status, "awaiting_approval")
         self.assertEqual(len(loaded.drafts), 2)
         self.assertEqual(
             [draft.draft_id for draft in loaded.drafts],
@@ -31,9 +32,12 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn("Direct draft", loaded.drafts[0].text)
         self.assertIn("Reflective draft", loaded.drafts[1].text)
         self.assertIn("ready for human approval", result.review_text)
+        self.assertEqual(loaded.review, result.review_text)
         self.assertTrue(result.agent_plan)
+        self.assertEqual(loaded.agent_plan, result.agent_plan)
         self.assertEqual(len(provider.calls), 4)
         self.assertEqual(loaded.inputs[0].path, "business/inbox/build-notes.md")
+        self.assertIn("Material:", provider.calls[-1]["user_prompt"])
         self.assertIsNotNone(loaded.usage)
 
     def test_empty_workflow_inputs_are_rejected(self) -> None:

@@ -29,6 +29,7 @@ def cmd_log(settings, run_id: str | None) -> int:
     print(f"run      {r.run_id}")
     print(f"agent    {r.agent}")
     print(f"task     {r.task}")
+    print(f"status   {r.status}")
     print(f"model    {r.provider}/{r.model}  (temp {r.temperature})")
 
     if r.usage:
@@ -56,6 +57,10 @@ def cmd_log(settings, run_id: str | None) -> int:
         if d.constraint_violations:
             print(f"  warning: {', '.join(d.constraint_violations)}")
         print(_indent(d.text))
+
+    if r.review:
+        print("\nREVIEW")
+        print(_indent(r.review))
 
     if r.decisions:
         print("\nDECISIONS")
@@ -88,18 +93,24 @@ def cmd_studio_demo(
             material_name=material_name,
         ),
     )
+    record = runrecord.read(settings.runs_dir, result.record.run_id)
 
-    print(f"run      {result.record.run_id}")
+    print(f"run      {record.run_id}")
     print(f"saved    {result.path}")
     print(f"agents   architect -> specialist -> reviewer")
     print("\nAGENT PLAN")
-    print(_indent(result.agent_plan))
-    for draft in result.record.drafts:
+    print(_indent(record.agent_plan or "(no plan recorded)"))
+    for draft in record.drafts:
         print(f"\nDRAFT {draft.draft_id}   [{draft.variant}]")
         print(_indent(draft.text))
     print("\nREVIEW")
-    print(_indent(result.review_text))
-    print("\nNEXT     human approval required")
+    print(_indent(record.review or "(no review recorded)"))
+    next_action = (
+        "human approval required"
+        if record.status == "awaiting_approval"
+        else record.status
+    )
+    print(f"\nNEXT     {record.status} ({next_action})")
     return 0
 
 def _indent(text: str, prefix:str = " | ") -> str:

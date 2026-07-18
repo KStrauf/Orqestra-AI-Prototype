@@ -9,10 +9,19 @@ recording behavior.
 from dataclasses import dataclass
 from pathlib import Path
 import time
-from typing import Protocol
+from typing import Mapping, Protocol
 
 from engine import runrecord
-from studio.manifest import AgentManifest, load_builtin_agents
+from studio.manifest import (
+    AgentManifest,
+    load_builtin_agents,
+    manifest_fingerprint,
+)
+from studio.plan import (
+    WorkflowDefinition,
+    compile_workflow,
+    content_workflow_definition,
+)
 
 
 @dataclass(frozen=True)
@@ -121,6 +130,8 @@ def run_content_workflow(
     runs_dir: Path,
     request: ContentWorkflowRequest,
     provider: TextProvider | None = None,
+    manifests: Mapping[str, AgentManifest] | None = None,
+    workflow: WorkflowDefinition | None = None,
 ) -> WorkflowResult:
     """Run the initial architect → specialist → reviewer workflow."""
     if not request.goal.strip():
@@ -131,12 +142,17 @@ def run_content_workflow(
         raise ValueError("workflow requires at least one draft variant")
 
     provider = provider or MockProvider()
-    agents = load_builtin_agents()
+    agents = dict(manifests or load_builtin_agents())
+    compiled = compile_workflow(
+        workflow or content_workflow_definition(),
+        agents,
+    )
+    steps = {step.id: step for step in compiled.definition.steps}
     run_id = runrecord.new_run_id()
     started_at = runrecord.utc_now()
     started_clock = time.monotonic()
 
-    architect = agents["architect"]
+    architect = compiled.agent_for(steps["architect"])
     plan_reply = provider.complete(
         system_prompt=architect.instructions,
         user_prompt=(
@@ -148,7 +164,7 @@ def run_content_workflow(
         temperature=architect.temperature,
     )
 
-    specialist = agents["specialist"]
+    specialist = compiled.agent_for(steps["specialist"])
     drafts: list[runrecord.Draft] = []
     replies = [plan_reply]
     for index, variant in enumerate(request.variants, start=1):
@@ -173,11 +189,14 @@ def run_content_workflow(
             )
         )
 
-    reviewer = agents["reviewer"]
+    reviewer = compiled.agent_for(steps["reviewer"])
     review_reply = provider.complete(
         system_prompt=reviewer.instructions,
         user_prompt=(
             f"Goal: {request.goal}\n"
+            f"Material: {request.material}\n"
+            "Review constraints: identify unsupported claims, factual gaps, "
+            "tone problems, and format errors.\n"
             f"Drafts:\n{chr(10).join(draft.text for draft in drafts)}"
         ),
         model=reviewer.model,
@@ -212,12 +231,13 @@ def run_content_workflow(
                 chars=len(request.material),
             )
         ],
-        template_name="content_workflow",
-        template_sha256=runrecord.sha256_text(
-            "\n".join(sorted(agents))
-        ),
+        template_name=compiled.definition.id,
+        template_sha256=manifest_fingerprint(agents),
         usage=usage,
         drafts=drafts,
+        status="awaiting_approval",
+        agent_plan=plan_reply.text,
+        review=review_reply.text,
     )
     path = runrecord.write(runs_dir, record)
     return WorkflowResult(
