@@ -15,6 +15,8 @@ import secrets
 import tempfile
 from typing import Any
 
+from engine.errors import DecisionError, PublicationError
+
 
 SCHEMA_VERSION = 2
 
@@ -197,6 +199,19 @@ def read(runs_dir: Path, run_id: str) -> RunRecord:
 def append_decision(runs_dir: Path, run_id: str, decision: Decision) -> None:
     """Append a human decision to an existing run record."""
     record = read(runs_dir, run_id)
+    valid_decisions = {"approve", "edit", "reject"}
+    if decision.decision not in valid_decisions:
+        raise DecisionError(
+            f"decision must be one of: {', '.join(sorted(valid_decisions))}"
+        )
+    if not any(draft.draft_id == decision.draft_id for draft in record.drafts):
+        raise DecisionError(f"draft not found in run: {decision.draft_id}")
+    if any(item.draft_id == decision.draft_id for item in record.decisions):
+        raise DecisionError(f"draft already has a decision: {decision.draft_id}")
+    if decision.decision == "edit" and not decision.edited_text:
+        raise DecisionError("an edit decision requires edited_text")
+    if decision.decision == "reject" and not decision.reason:
+        raise DecisionError("a reject decision requires a reason")
     record.decisions.append(decision)
     record.status = "decided"
     write(runs_dir, record)
@@ -205,7 +220,22 @@ def append_decision(runs_dir: Path, run_id: str, decision: Decision) -> None:
 def append_published(runs_dir: Path, run_id: str, published: Published) -> None:
     """Append publication evidence to an existing run record."""
     record = read(runs_dir, run_id)
+    if not any(draft.draft_id == published.draft_id for draft in record.drafts):
+        raise PublicationError(f"draft not found in run: {published.draft_id}")
+    if any(item.draft_id == published.draft_id for item in record.published):
+        raise PublicationError(f"draft is already published: {published.draft_id}")
+    decision = next(
+        (item for item in record.decisions if item.draft_id == published.draft_id),
+        None,
+    )
+    if decision is None:
+        raise PublicationError("draft requires human approval before publication")
+    if decision.decision not in {"approve", "edit"}:
+        raise PublicationError(
+            f"draft cannot be published after a {decision.decision} decision"
+        )
     record.published.append(published)
+    record.status = "published"
     write(runs_dir, record)
 
 

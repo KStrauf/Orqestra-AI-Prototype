@@ -15,6 +15,12 @@ class ManifestError(OrqError):
 class WorkflowError(OrqError):
      """A Studio workflow is invalid or cannot be compiled safely."""
 
+class DecisionError(OrqError):
+    """A human decision is invalid for the selected draft or run."""
+
+class PublicationError(OrqError):
+    """A draft cannot be marked published yet."""
+
 class TemplateError(OrqError):
     """An output template (like social_post.yaml) is missing or malformed."""
 

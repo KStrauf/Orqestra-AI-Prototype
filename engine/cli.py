@@ -1,11 +1,12 @@
 """The ``orq`` command and its user-facing subcommands."""
 
 import argparse
+import difflib
 import sys
 
 from engine import runrecord
 from engine.config import load_settings
-from engine.errors import OrqError
+from engine.errors import DecisionError, OrqError
 from studio.workflow import ContentWorkflowRequest, run_content_workflow
 
 def cmd_log(settings, run_id: str | None) -> int:
@@ -113,6 +114,95 @@ def cmd_studio_demo(
     print(f"\nNEXT     {record.status} ({next_action})")
     return 0
 
+
+def cmd_pending(settings) -> int:
+    """List every draft that still needs a human decision."""
+    pending = []
+    for run_id in runrecord.list_run_ids(settings.runs_dir):
+        record = runrecord.read(settings.runs_dir, run_id)
+        decided = {decision.draft_id for decision in record.decisions}
+        for draft in record.drafts:
+            if draft.draft_id not in decided and not any(
+                item.draft_id == draft.draft_id for item in record.published
+            ):
+                pending.append((record, draft))
+
+    if not pending:
+        print("no drafts awaiting approval")
+        return 0
+
+    for record, draft in pending:
+        print(f"{record.run_id}  {draft.draft_id}  [{draft.variant}]")
+        print(f"  task: {record.task}")
+        print(f"  {draft.text}")
+    return 0
+
+
+def _decision_diff(original: str, edited: str, draft_id: str) -> str:
+    """Create a readable, durable diff for an edited draft."""
+    return "".join(
+        difflib.unified_diff(
+            original.splitlines(keepends=True),
+            edited.splitlines(keepends=True),
+            fromfile=f"{draft_id} (original)",
+            tofile=f"{draft_id} (edited)",
+        )
+    )
+
+
+def cmd_approve(
+    settings,
+    run_id: str,
+    draft_id: str,
+    decision: str,
+    reason_tag: str | None = None,
+    reason: str | None = None,
+    edited_text: str | None = None,
+) -> int:
+    """Record an approve, edit, or reject decision for one draft."""
+    record = runrecord.read(settings.runs_dir, run_id)
+    draft = next((item for item in record.drafts if item.draft_id == draft_id), None)
+    if draft is None:
+        raise DecisionError(f"draft not found in run: {draft_id}")
+
+    diff = None
+    if decision == "edit" and edited_text is not None:
+        diff = _decision_diff(draft.text, edited_text, draft_id)
+    runrecord.append_decision(
+        settings.runs_dir,
+        run_id,
+        runrecord.Decision(
+            draft_id=draft_id,
+            decision=decision,
+            at=runrecord.utc_now(),
+            reason_tag=reason_tag,
+            reason=reason,
+            edited_text=edited_text,
+            diff=diff,
+        ),
+    )
+    print(f"{draft_id}: {decision}")
+    return 0
+
+
+def cmd_publish(settings, draft_id: str, url: str, platform: str) -> int:
+    """Record publication evidence for an approved draft."""
+    if "#" not in draft_id:
+        raise OrqError("draft_id must have the form '<run_id>#<draft-number>'")
+    run_id, _ = draft_id.split("#", 1)
+    runrecord.append_published(
+        settings.runs_dir,
+        run_id,
+        runrecord.Published(
+            draft_id=draft_id,
+            at=runrecord.utc_now(),
+            platform=platform,
+            url=url,
+        ),
+    )
+    print(f"{draft_id}: published to {platform} ({url})")
+    return 0
+
 def _indent(text: str, prefix:str = " | ") -> str:
     """Indent a blockso promptsare visually distinct from. the. metadata."""
     return "\n".join(prefix + line for line in text.splitlines())
@@ -155,7 +245,13 @@ def main() -> int:
     p_run.add_argument("--output-type", help="Override the manifest's output_type")
 
     # --- Step 9-10: the human-in-the-loop ----------------------------------
-    sub.add_parser("approve", help="Review pending drafts: approve, edit, or reject")
+    p_approve = sub.add_parser("approve", help="Approve, edit, or reject one draft")
+    p_approve.add_argument("run_id")
+    p_approve.add_argument("draft_id")
+    p_approve.add_argument("--decision", required=True, choices=("approve", "edit", "reject"))
+    p_approve.add_argument("--reason-tag")
+    p_approve.add_argument("--reason")
+    p_approve.add_argument("--text", dest="edited_text", help="Replacement text for an edit")
     sub.add_parser("pending", help="List drafts awaiting your decision")
 
     p_log = sub.add_parser("log", help="Show run records")
@@ -195,7 +291,21 @@ def main() -> int:
                 args.material,
                 args.material_name,
             )
-        
+        if args.command == "pending":
+            return cmd_pending(settings)
+        if args.command == "approve":
+            return cmd_approve(
+                settings,
+                args.run_id,
+                args.draft_id,
+                args.decision,
+                args.reason_tag,
+                args.reason,
+                args.edited_text,
+            )
+        if args.command == "publish":
+            return cmd_publish(settings, args.draft_id, args.url, args.platform)
+
         raise NotImplementedError(f"'{args.command}' is not built yet. See the build plan.")
     except OrqError as e:
         print(f"error:  {e}",file=sys.stderr)

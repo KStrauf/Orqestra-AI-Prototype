@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from engine import runrecord
+from engine.errors import DecisionError, PublicationError
 
 
 class RunRecordTests(unittest.TestCase):
@@ -72,7 +73,71 @@ class RunRecordTests(unittest.TestCase):
         self.assertEqual(loaded.drafts, self.record.drafts)
         self.assertEqual(loaded.decisions, [decision])
         self.assertEqual(loaded.published, [publication])
-        self.assertEqual(loaded.status, "decided")
+        self.assertEqual(loaded.status, "published")
+
+    def test_publication_requires_approval(self) -> None:
+        runrecord.write(self.runs_dir, self.record)
+        publication = runrecord.Published(
+            draft_id="20260718-1200-ab12#1",
+            at="2026-07-18T12:02:00Z",
+            platform="example",
+            url="https://example.test/post/1",
+        )
+
+        with self.assertRaises(PublicationError):
+            runrecord.append_published(self.runs_dir, self.record.run_id, publication)
+
+    def test_rejected_draft_cannot_be_published(self) -> None:
+        runrecord.write(self.runs_dir, self.record)
+        runrecord.append_decision(
+            self.runs_dir,
+            self.record.run_id,
+            runrecord.Decision(
+                draft_id="20260718-1200-ab12#1",
+                decision="reject",
+                at="2026-07-18T12:01:00Z",
+                reason_tag="unsupported_claim",
+                reason="The source does not support this claim.",
+            ),
+        )
+
+        with self.assertRaises(PublicationError):
+            runrecord.append_published(
+                self.runs_dir,
+                self.record.run_id,
+                runrecord.Published(
+                    draft_id="20260718-1200-ab12#1",
+                    at="2026-07-18T12:02:00Z",
+                    platform="example",
+                    url="https://example.test/post/1",
+                ),
+            )
+
+    def test_decision_requires_existing_draft_and_required_fields(self) -> None:
+        runrecord.write(self.runs_dir, self.record)
+
+        with self.assertRaises(DecisionError):
+            runrecord.append_decision(
+                self.runs_dir,
+                self.record.run_id,
+                runrecord.Decision("missing#1", "approve", "2026-07-18T12:01:00Z"),
+            )
+        with self.assertRaises(DecisionError):
+            runrecord.append_decision(
+                self.runs_dir,
+                self.record.run_id,
+                runrecord.Decision(
+                    "20260718-1200-ab12#1", "edit", "2026-07-18T12:01:00Z"
+                ),
+            )
+        with self.assertRaises(DecisionError):
+            runrecord.append_decision(
+                self.runs_dir,
+                self.record.run_id,
+                runrecord.Decision(
+                    "20260718-1200-ab12#1", "reject", "2026-07-18T12:01:00Z"
+                ),
+            )
 
     def test_write_leaves_no_temporary_file(self) -> None:
         path = runrecord.write(self.runs_dir, self.record)
