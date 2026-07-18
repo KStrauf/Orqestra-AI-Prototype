@@ -1,0 +1,32 @@
+[project]
+name = "orqestra-ai"
+version = "0.1.0"
+description = "A modular agent system that runs a solo creator business"
+requires-python = ">=3.10"
+
+# Mirrors requirements.txt. `pip install -e .` reads THIS, not that file.
+dependencies = [
+    "anthropic>=0.40, <1.0",
+    "openai>=1.60, <2.0",
+    "httpx>=0.27,<1.0",
+    "PyYAML>=6.0,<7.0",
+    "python-dotenv>=1.0,<2.0",
+]
+
+# This is what make `orq` a real command in your terminal. 
+# It means: when someone types `orq`, run the main() function in engine/cli.py
+[project.scripts]
+orq = "engine.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+# Ship the engine. DO NOT ship `business` or `data` - those are the company, not the product.
+packages = ["engine", "engine.tools", "engine.providers"]
+
+# That [project.scripts] block is the small piece of magic that turns
+# python -m engine.cli into just orq.
+
+
