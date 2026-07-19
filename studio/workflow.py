@@ -76,6 +76,9 @@ def run_content_workflow(
     started_clock = time.monotonic()
 
     architect = compiled.agent_for(steps["architect"])
+    # Each call resolves through the provider boundary. This lets a provider
+    # replace provider-neutral manifest models (for example gpt-5.6) with its
+    # configured local model while keeping the run trace explicit.
     architect_model = resolve_model(provider, architect.model)
     plan_reply = provider.complete(
         system_prompt=architect.instructions,
@@ -144,6 +147,8 @@ def run_content_workflow(
         started_at=started_at,
         finished_at=finished_at,
         duration_ms=round((time.monotonic() - started_clock) * 1000),
+        # RunRecord has one primary model field; use the Specialist model that
+        # produced the persisted candidate drafts and retain the provider name.
         provider=provider.name,
         model=specialist_model,
         temperature=specialist.temperature,

@@ -1,10 +1,11 @@
-"""Provider-neutral text completion contracts and the local demo provider."""
+"""Provider-neutral text completion contracts and provider adapters."""
 
 from dataclasses import dataclass
 import json
+import os
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
-from typing import Protocol
+from typing import Any, Protocol
 
 from engine.errors import ProviderError
 
@@ -24,6 +25,7 @@ class TextProvider(Protocol):
     """The smallest interface the orchestration layer needs from a provider."""
 
     name: str
+    default_model: str
 
     def complete(
         self,
@@ -40,6 +42,7 @@ class MockProvider:
     """A deterministic provider for local development and the demo fixture."""
 
     name = "mock"
+    default_model = ""
 
     def __init__(self) -> None:
         self.calls: list[dict[str, str | float]] = []
@@ -151,6 +154,95 @@ class OllamaProvider:
         )
 
 
+class OpenAIProvider:
+    """A lazy OpenAI Chat Completions adapter using the shared text contract.
+
+    The SDK client is created only when the first completion is requested. That
+    keeps mock and Ollama development keyless and makes this adapter testable
+    with an injected client without making a network call during construction.
+    """
+
+    name = "openai"
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        default_model: str = "gpt-5.6",
+        base_url: str | None = None,
+        timeout_seconds: float = 180.0,
+        client: Any | None = None,
+    ) -> None:
+        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        self.default_model = default_model
+        self.base_url = base_url or os.getenv("OPENAI_BASE_URL")
+        self.timeout_seconds = timeout_seconds
+        self._client = client
+
+    def _client_or_raise(self) -> Any:
+        if self._client is not None:
+            return self._client
+        if not self.api_key:
+            raise ProviderError(
+                "OpenAI provider requires OPENAI_API_KEY before a completion can run"
+            )
+        try:
+            from openai import OpenAI
+        except ImportError as error:
+            raise ProviderError(
+                "OpenAI provider requires the openai package to be installed"
+            ) from error
+
+        options: dict[str, Any] = {
+            "api_key": self.api_key,
+            "timeout": self.timeout_seconds,
+        }
+        if self.base_url:
+            options["base_url"] = self.base_url
+        self._client = OpenAI(**options)
+        return self._client
+
+    def complete(
+        self,
+        *,
+        system_prompt: str,
+        user_prompt: str,
+        model: str,
+        temperature: float,
+    ) -> ProviderReply:
+        selected_model = model or self.default_model
+        try:
+            response = self._client_or_raise().chat.completions.create(
+                model=selected_model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=temperature,
+            )
+        except ProviderError:
+            raise
+        except Exception as error:
+            raise ProviderError("OpenAI completion failed") from error
+
+        try:
+            text = response.choices[0].message.content
+            if not isinstance(text, str):
+                raise TypeError("message content was not text")
+            usage = response.usage
+            input_tokens = int(getattr(usage, "prompt_tokens", 0) or 0)
+            output_tokens = int(getattr(usage, "completion_tokens", 0) or 0)
+        except (AttributeError, IndexError, TypeError, ValueError) as error:
+            raise ProviderError("OpenAI returned an invalid chat response") from error
+
+        return ProviderReply(
+            text=text,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            cost_usd=0.0,
+            cost_is_estimate=True,
+        )
+
+
 def _prompt_value(prompt: str, label: str) -> str | None:
     prefix = f"{label}:"
     for line in prompt.splitlines():
@@ -161,27 +253,44 @@ def _prompt_value(prompt: str, label: str) -> str | None:
 
 def resolve_model(provider: TextProvider, requested_model: str) -> str:
     """Use a provider-specific model when the manifest is provider-neutral."""
-    return getattr(provider, "default_model", requested_model)
+    return getattr(provider, "default_model", "") or requested_model
 
 
 def get_provider(
-    name: str,
+    name: str | None = None,
     *,
+    model: str | None = None,
     ollama_host: str = "http://localhost:11434",
     ollama_model: str = "qwen3:1.7b",
     ollama_num_predict: int = 120,
     ollama_think: bool = False,
+    openai_api_key: str | None = None,
+    openai_model: str | None = None,
+    openai_base_url: str | None = None,
 ) -> TextProvider:
-    """Resolve one configured provider without exposing SDK details upstream."""
-    if name == "mock":
+    """Resolve one configured provider from explicit args or environment."""
+    provider_name = (name or os.getenv("ORQ_PROVIDER", "mock")).strip().lower()
+    selected_model = model or os.getenv("ORQ_MODEL")
+    if provider_name == "mock":
         return MockProvider()
-    if name == "ollama":
+    if provider_name == "ollama":
         return OllamaProvider(
             host=ollama_host,
-            default_model=ollama_model,
+            default_model=selected_model or ollama_model,
             num_predict=ollama_num_predict,
             think=ollama_think,
         )
+    if provider_name == "openai":
+        return OpenAIProvider(
+            api_key=openai_api_key,
+            default_model=(
+                selected_model
+                or openai_model
+                or os.getenv("ORQ_OPENAI_MODEL")
+                or "gpt-5.6"
+            ),
+            base_url=openai_base_url,
+        )
     raise ProviderError(
-        f"provider '{name}' is not available; use ORQ_PROVIDER=mock or ollama"
+        f"provider '{provider_name}' is not available; use ORQ_PROVIDER=mock, ollama, or openai"
     )

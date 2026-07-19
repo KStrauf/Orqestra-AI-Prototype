@@ -3,6 +3,7 @@
 from engine.providers.text import (
     MockProvider,
     OllamaProvider,
+    OpenAIProvider,
     ProviderReply,
     TextProvider,
     get_provider,
@@ -12,6 +13,7 @@ from engine.providers.text import (
 __all__ = [
     "MockProvider",
     "OllamaProvider",
+    "OpenAIProvider",
     "ProviderReply",
     "TextProvider",
     "get_provider",

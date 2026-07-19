@@ -19,7 +19,9 @@ class Settings:
     data_dir: Path           # generated run records + index - gitignored
     ollama_host: str
     provider: str = "mock"
+    model: str | None = None
     ollama_model: str = "qwen3:1.7b"
+    openai_model: str = "gpt-5.6"
     ollama_num_predict: int = 120
     ollama_think: bool = False
 
@@ -50,8 +52,10 @@ def load_settings() -> Settings:
 "business")).resolve(),
         data_dir=Path(os.getenv("ORQ_DATA_DIR", "data")).resolve(),
         ollama_host=os.getenv("OLLAMA_HOST", "http://localhost:11434"),
-        provider=os.getenv("ORQ_PROVIDER", "mock"),
+        provider=os.getenv("ORQ_PROVIDER", "mock").strip().lower(),
+        model=os.getenv("ORQ_MODEL") or None,
         ollama_model=os.getenv("ORQ_OLLAMA_MODEL", "qwen3:1.7b"),
+        openai_model=os.getenv("ORQ_OPENAI_MODEL", "gpt-5.6"),
         ollama_num_predict=int(os.getenv("ORQ_OLLAMA_NUM_PREDICT", "120")),
         ollama_think=os.getenv("ORQ_OLLAMA_THINK", "false").lower() == "true",
     )

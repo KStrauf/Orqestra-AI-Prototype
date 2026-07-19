@@ -2,7 +2,8 @@ export type RunStatus =
   | "awaiting_approval"
   | "decided"
   | "published"
-  | "completed";
+  | "completed"
+  | "failed";
 
 export type DecisionKind = "approve" | "edit" | "reject";
 
@@ -35,6 +36,8 @@ export interface StudioRun {
   run_id: string;
   agent: string;
   task: string;
+  started_at: string;
+  finished_at?: string | null;
   provider: string;
   model: string;
   temperature: number;
@@ -50,6 +53,20 @@ export interface StudioRun {
     url: string;
   }>;
   usage?: Usage;
+}
+
+export interface RunSummary {
+  run_id: string;
+  agent: string;
+  task: string;
+  started_at: string;
+  finished_at?: string | null;
+  provider: string;
+  model: string;
+  status: RunStatus;
+  draft_count: number;
+  decision_count: number;
+  published_count: number;
 }
 
 export interface CreateWorkflowInput {

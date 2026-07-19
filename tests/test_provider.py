@@ -1,13 +1,23 @@
+import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
 import json
+from types import SimpleNamespace
 from urllib.error import URLError
 
 from engine.cli import cmd_ping
+from engine.config import load_settings
 from engine.errors import ProviderError
-from engine.providers import MockProvider, OllamaProvider, get_provider, resolve_model
+from engine.providers import (
+    MockProvider,
+    OllamaProvider,
+    OpenAIProvider,
+    get_provider,
+    resolve_model,
+)
+from studio.workflow import ContentWorkflowRequest, run_content_workflow
 
 
 class ProviderTests(unittest.TestCase):
@@ -28,7 +38,36 @@ class ProviderTests(unittest.TestCase):
 
     def test_unknown_provider_is_a_clean_error(self) -> None:
         with self.assertRaisesRegex(ProviderError, "not available"):
-            get_provider("openai")
+            get_provider("future-provider")
+
+    def test_provider_and_model_are_selected_from_environment(self) -> None:
+        with patch.dict(
+            os.environ,
+            {"ORQ_PROVIDER": "openai", "ORQ_MODEL": "gpt-5.6"},
+            clear=False,
+        ):
+            provider = get_provider()
+
+        self.assertIsInstance(provider, OpenAIProvider)
+        self.assertEqual(provider.default_model, "gpt-5.6")
+
+    def test_settings_normalize_provider_and_expose_model_selection(self) -> None:
+        with patch.dict(
+            os.environ,
+            {
+                "ORQ_PROVIDER": "OLLAMA",
+                "ORQ_MODEL": "qwen3:8b",
+                "ORQ_OLLAMA_MODEL": "qwen3:1.7b",
+                "ORQ_OPENAI_MODEL": "gpt-5.6",
+            },
+            clear=False,
+        ):
+            settings = load_settings()
+
+        self.assertEqual(settings.provider, "ollama")
+        self.assertEqual(settings.model, "qwen3:8b")
+        self.assertEqual(settings.ollama_model, "qwen3:1.7b")
+        self.assertEqual(settings.openai_model, "gpt-5.6")
 
     def test_ping_uses_configured_provider_boundary(self) -> None:
         with TemporaryDirectory() as temporary:
@@ -107,6 +146,105 @@ class ProviderTests(unittest.TestCase):
         provider = get_provider("ollama", ollama_model="qwen3:1.7b")
 
         self.assertEqual(resolve_model(provider, "gpt-5.6"), "qwen3:1.7b")
+
+    def test_ollama_provider_accepts_generic_model_override(self) -> None:
+        provider = get_provider(
+            "ollama",
+            model="qwen3:8b",
+            ollama_model="qwen3:1.7b",
+        )
+
+        self.assertEqual(resolve_model(provider, "gpt-5.6"), "qwen3:8b")
+
+    def test_openai_provider_uses_the_same_text_contract(self) -> None:
+        class FakeCompletions:
+            def __init__(self) -> None:
+                self.kwargs = None
+
+            def create(self, **kwargs):
+                self.kwargs = kwargs
+                return SimpleNamespace(
+                    choices=[
+                        SimpleNamespace(
+                            message=SimpleNamespace(content="OpenAI answer.")
+                        )
+                    ],
+                    usage=SimpleNamespace(prompt_tokens=11, completion_tokens=7),
+                )
+
+        completions = FakeCompletions()
+        client = SimpleNamespace(chat=SimpleNamespace(completions=completions))
+        provider = OpenAIProvider(
+            api_key="test-key",
+            default_model="gpt-5.6",
+            client=client,
+        )
+
+        reply = provider.complete(
+            system_prompt="Be concise.",
+            user_prompt="Say hello.",
+            model="",
+            temperature=0.2,
+        )
+
+        self.assertEqual(provider.name, "openai")
+        self.assertEqual(provider.default_model, "gpt-5.6")
+        self.assertEqual(reply.text, "OpenAI answer.")
+        self.assertEqual(reply.input_tokens, 11)
+        self.assertEqual(reply.output_tokens, 7)
+        self.assertTrue(reply.cost_is_estimate)
+        self.assertEqual(completions.kwargs["model"], "gpt-5.6")
+        self.assertEqual(completions.kwargs["temperature"], 0.2)
+        self.assertEqual(
+            completions.kwargs["messages"],
+            [
+                {"role": "system", "content": "Be concise."},
+                {"role": "user", "content": "Say hello."},
+            ],
+        )
+
+    def test_openai_provider_requires_key_only_when_completion_runs(self) -> None:
+        with patch.dict(os.environ, {"OPENAI_API_KEY": ""}, clear=False):
+            provider = OpenAIProvider()
+
+        with self.assertRaisesRegex(ProviderError, "OPENAI_API_KEY"):
+            provider.complete(
+                system_prompt="System",
+                user_prompt="Hello",
+                model="gpt-5.6",
+                temperature=0.0,
+            )
+
+    def test_workflow_records_provider_and_resolved_model_metadata(self) -> None:
+        class FakeCompletions:
+            def create(self, **kwargs):
+                return SimpleNamespace(
+                    choices=[
+                        SimpleNamespace(
+                            message=SimpleNamespace(content="Provider draft.")
+                        )
+                    ],
+                    usage=SimpleNamespace(prompt_tokens=3, completion_tokens=2),
+                )
+
+        provider = OpenAIProvider(
+            default_model="gpt-5.6",
+            client=SimpleNamespace(
+                chat=SimpleNamespace(completions=FakeCompletions())
+            ),
+        )
+        with TemporaryDirectory() as temporary:
+            result = run_content_workflow(
+                Path(temporary) / "runs",
+                ContentWorkflowRequest(
+                    goal="Write a provider test",
+                    material="Provider metadata must be traceable.",
+                ),
+                provider=provider,
+            )
+
+        self.assertEqual(result.record.provider, "openai")
+        self.assertEqual(result.record.model, "gpt-5.6")
 
 
 if __name__ == "__main__":

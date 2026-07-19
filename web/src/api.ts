@@ -2,6 +2,7 @@ import type {
   CreateWorkflowInput,
   Decision,
   DecisionInput,
+  RunSummary,
   StudioRun,
 } from "./types";
 
@@ -13,6 +14,22 @@ const demoMode = import.meta.env.VITE_DEMO_MODE !== "false";
 
 export const isDemoMode = demoMode || !apiBaseUrl;
 
+export class StudioApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly code?: string,
+    public readonly details?: unknown,
+  ) {
+    super(message);
+    this.name = "StudioApiError";
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!apiBaseUrl) {
     throw new Error("VITE_API_URL is not configured");
@@ -22,7 +39,24 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
   });
   if (!response.ok) {
-    throw new Error(`Studio API returned ${response.status}`);
+    let payload: unknown = null;
+    try {
+      payload = await response.json();
+    } catch {
+      // Keep the status-based fallback when the service returns no JSON body.
+    }
+    const envelope = isRecord(payload) && isRecord(payload.error) ? payload.error : null;
+    const detail = isRecord(payload) ? payload.detail : undefined;
+    const message =
+      (envelope && typeof envelope.message === "string" && envelope.message) ||
+      (typeof detail === "string" && detail) ||
+      `Studio API returned ${response.status}`;
+    throw new StudioApiError(
+      message,
+      response.status,
+      envelope && typeof envelope.code === "string" ? envelope.code : undefined,
+      envelope?.details,
+    );
   }
   return response.json() as Promise<T>;
 }
@@ -55,6 +89,21 @@ export async function recordDecision(
   };
 }
 
+export async function listRuns(limit = 20): Promise<RunSummary[]> {
+  if (demoMode) return [];
+  const response = await request<{ runs: RunSummary[] }>(
+    `/api/studio/runs?limit=${limit}`,
+  );
+  return response.runs;
+}
+
+export async function getRun(runId: string): Promise<StudioRun> {
+  if (demoMode) {
+    throw new Error("Demo runs are available only in the current session");
+  }
+  return request<StudioRun>(`/api/studio/runs/${runId}`);
+}
+
 function demoRun(input: CreateWorkflowInput): StudioRun {
   const runId = `demo-${Date.now()}`;
   const drafts = input.variants.map((variant, index) => ({
@@ -71,6 +120,8 @@ function demoRun(input: CreateWorkflowInput): StudioRun {
     run_id: runId,
     agent: "orchestrator",
     task: input.goal,
+    started_at: new Date().toISOString(),
+    finished_at: new Date().toISOString(),
     provider: "demo",
     model: "local-preview",
     temperature: 0.2,

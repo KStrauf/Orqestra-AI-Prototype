@@ -244,3 +244,17 @@ def list_run_ids(runs_dir: Path) -> list[str]:
     if not runs_dir.exists():
         return []
     return sorted((path.stem for path in runs_dir.glob("*/*.json")), reverse=True)
+
+
+def list_records(runs_dir: Path, limit: int | None = None) -> list[RunRecord]:
+    """Return durable run records newest first.
+
+    The API history view deliberately reads these JSON records through this
+    module rather than creating a second persistence path or index.
+    """
+    run_ids = list_run_ids(runs_dir)
+    if limit is not None:
+        if limit < 1:
+            raise ValueError("limit must be positive")
+        run_ids = run_ids[:limit]
+    return [read(runs_dir, run_id) for run_id in run_ids]

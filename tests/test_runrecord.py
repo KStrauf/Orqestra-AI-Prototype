@@ -197,6 +197,25 @@ class RunRecordTests(unittest.TestCase):
 
         self.assertEqual(runrecord.list_run_ids(self.runs_dir), [newer, self.record.run_id])
 
+    def test_list_records_reads_newest_records_from_durable_storage(self) -> None:
+        runrecord.write(self.runs_dir, self.record)
+        newer = self.record.run_id.replace("1200", "1201")
+        runrecord.write(self.runs_dir, runrecord.RunRecord(
+            run_id=newer,
+            agent="test",
+            task="New post",
+            started_at="2026-07-18T12:01:00Z",
+            provider="test",
+            model="test-model",
+            temperature=0.7,
+            system_prompt="System",
+            user_prompt="User",
+        ))
+
+        records = runrecord.list_records(self.runs_dir, limit=1)
+
+        self.assertEqual([record.run_id for record in records], [newer])
+
 
 if __name__ == "__main__":
     unittest.main()
