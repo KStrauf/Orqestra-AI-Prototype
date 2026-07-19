@@ -25,6 +25,19 @@ The API-backed client uses:
 - `GET /api/studio/runs/{run_id}` to reopen a saved run.
 - `POST /api/studio/runs/{run_id}/decisions` to record approve/edit/reject.
 
+## Workspace routes
+
+The lightweight hash router keeps the MVP dependency-free while providing stable workspace destinations:
+
+- `#/` — Dashboard and quick starts.
+- `#/runs/new` — New Run composer and workflow preview.
+- `#/runs/{run_id}` — Run Workspace with pipeline, drafts, and decisions.
+- `#/history` — Searchable/filterable durable run history.
+- `#/trace/{run_id}` — Plain-language Architect/Specialist/Reviewer/human trace.
+- `#/settings` — Informational environment and safety settings.
+
+The desktop shell keeps orientation in the left rail, the primary task in the center, and trust/context signals on the right. On mobile it collapses to one pane with route-aware bottom tabs.
+
 ## Frontend slices
 
 - `App.tsx` owns page state and coordinates API actions.
@@ -34,6 +47,8 @@ The API-backed client uses:
 - `components/DecisionControls.tsx` owns the human gate controls.
 - `components/ReviewPanel.tsx` shows reviewer notes, plan, and run facts.
 - `components/RunHistory.tsx` shows saved runs and the current-session fallback.
+- `components/DashboardPage.tsx`, `NewRunPage.tsx`, `HistoryPage.tsx`, `TracePage.tsx`, and `SettingsPage.tsx` provide the workspace destinations.
+- `routes.ts` provides the dependency-free hash route mapping.
 - `api.ts` keeps demo/API switching and the backend contract in one place.
 
 Build the production bundle with:

@@ -15,6 +15,14 @@ export interface Draft {
   constraint_violations: string[];
 }
 
+export interface RunInput {
+  source: string;
+  path: string;
+  sha256: string;
+  chars: number;
+  content?: string | null;
+}
+
 export interface Decision {
   draft_id: string;
   decision: DecisionKind;
@@ -41,6 +49,7 @@ export interface StudioRun {
   provider: string;
   model: string;
   temperature: number;
+  inputs: RunInput[];
   status: RunStatus;
   agent_plan: string | null;
   review: string | null;

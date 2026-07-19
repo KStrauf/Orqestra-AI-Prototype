@@ -34,6 +34,7 @@ class InputResponse(BaseModel):
     path: str
     sha256: str
     chars: int
+    content: str | None = None
 
 
 class UsageResponse(BaseModel):

@@ -18,7 +18,7 @@ from typing import Any
 from engine.errors import DecisionError, PublicationError
 
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
 # --- small helpers ---------------------------------------------------------
@@ -49,6 +49,7 @@ class Input:
     path: str
     sha256: str
     chars: int
+    content: str | None = None
 
 
 @dataclass

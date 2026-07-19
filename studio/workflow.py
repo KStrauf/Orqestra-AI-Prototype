@@ -160,6 +160,7 @@ def run_content_workflow(
                 path=request.material_name,
                 sha256=runrecord.sha256_text(request.material),
                 chars=len(request.material),
+                content=request.material,
             )
         ],
         template_name=compiled.definition.id,

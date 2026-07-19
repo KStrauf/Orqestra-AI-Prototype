@@ -40,7 +40,7 @@ export function AppShell({
         <main className="main-content" id="workspace">{children}</main>
         <ContextPanel>{context}</ContextPanel>
       </div>
-      <MobileNav />
+      <MobileNav activeRoute={activeRoute} />
     </div>
   );
 }
