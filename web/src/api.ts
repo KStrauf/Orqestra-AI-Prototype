@@ -106,10 +106,16 @@ export async function getRun(runId: string): Promise<StudioRun> {
 
 function demoRun(input: CreateWorkflowInput): StudioRun {
   const runId = `demo-${Date.now()}`;
+  const variantDescriptions: Record<string, string> = {
+    direct: "Lead with the clearest claim and next action.",
+    reflective: "Connect the change to the lesson it reveals.",
+    educational: "Explain the idea step by step so it is easy to apply.",
+    contrarian: "Challenge the obvious framing with a useful counterpoint.",
+  };
   const drafts = input.variants.map((variant, index) => ({
     draft_id: `${runId}#${index + 1}`,
     variant,
-    text: `${variant[0].toUpperCase()}${variant.slice(1)} draft for ${input.goal}: ${input.material}`,
+    text: `${variant[0].toUpperCase()}${variant.slice(1)} draft for ${input.goal}: ${variantDescriptions[variant] || "Take a distinct angle on the supplied material."} ${input.material}`,
     chars: 0,
     constraint_violations: [],
   }));
@@ -134,7 +140,7 @@ function demoRun(input: CreateWorkflowInput): StudioRun {
     }],
     status: "awaiting_approval",
     agent_plan:
-      "Use the specialist to create two grounded drafts, then route them to review before any publication.",
+      "Use the specialist to create distinct grounded drafts, then route them to review before any publication.",
     review:
       "The drafts are grounded in the supplied material and ready for a human decision.",
     drafts,

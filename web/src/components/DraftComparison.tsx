@@ -10,6 +10,16 @@ function decisionFor(run: StudioRun, draftId: string): Decision | undefined {
   return run.decisions.find((decision) => decision.draft_id === draftId);
 }
 
+function variantDescription(variant: string): string {
+  const descriptions: Record<string, string> = {
+    direct: "Clear claim and next action",
+    reflective: "Connects the change to a lesson",
+    educational: "Explains the idea step by step",
+    contrarian: "Challenges the obvious framing",
+  };
+  return descriptions[variant.toLowerCase()] || "A distinct angle for comparison";
+}
+
 export function DraftComparison({
   run,
   selectedDraftId,
@@ -36,6 +46,7 @@ export function DraftComparison({
               className={`draft-card ${draft.draft_id === selectedDraftId ? "selected" : ""}`}
               key={draft.draft_id}
               onClick={() => onSelect(draft)}
+              aria-pressed={draft.draft_id === selectedDraftId}
               type="button"
             >
               <div className="draft-card-top">
@@ -46,9 +57,10 @@ export function DraftComparison({
                   </span>
                 )}
               </div>
+              <span className="draft-angle">{variantDescription(draft.variant)}</span>
               <p>{draft.text}</p>
               <span className="draft-card-bottom">
-                {draft.chars} characters <span>↗</span>
+                {draft.draft_id === selectedDraftId ? "Selected for review" : "Select to review →"} <span>{draft.chars} characters</span>
               </span>
             </button>
           );

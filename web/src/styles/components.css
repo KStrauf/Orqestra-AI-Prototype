@@ -126,6 +126,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--brand-600); box-
 .draft-card-top, .draft-card-bottom { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
 .draft-card h3, .recent-run-title, .history-item strong { color: var(--text-strong); font-size: var(--text-lg); font-weight: var(--weight-semibold); }
 .draft-card p { display: -webkit-box; overflow: hidden; color: var(--text-default); font-size: var(--text-sm); line-height: var(--line-relaxed); -webkit-box-orient: vertical; -webkit-line-clamp: 5; }
+.draft-angle { color: var(--brand-700); font-size: var(--text-xs); font-weight: var(--weight-semibold); }
 .draft-card-bottom { margin-top: auto; color: var(--text-muted); font-size: var(--text-sm); }
 .count-label { white-space: nowrap; }
 

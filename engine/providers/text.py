@@ -67,9 +67,16 @@ class MockProvider:
             variant = _prompt_value(user_prompt, "Variant") or "default"
             goal = _prompt_value(user_prompt, "Goal") or "the requested task"
             material = _prompt_value(user_prompt, "Material") or "the supplied material"
-            text = f"{variant.title()} draft for {goal}: {material}"
+            variant_descriptions = {
+                "direct": "Lead with the clearest claim and next action.",
+                "reflective": "Connect the change to the lesson it reveals.",
+                "educational": "Explain the idea step by step so it is easy to apply.",
+                "contrarian": "Challenge the obvious framing with a useful counterpoint.",
+            }
+            angle = variant_descriptions.get(variant.lower(), "Take a distinct angle on the supplied material.")
+            text = f"{variant.title()} draft for {goal}: {angle} {material}"
         elif "agent plan" in user_prompt.lower():
-            text = "Use the specialist to create two drafts, then send both to the reviewer."
+            text = "Use the specialist to create distinct drafts, then send them to the reviewer."
         elif "review" in system_prompt.lower() or "Drafts:" in user_prompt:
             text = "Review: the drafts are grounded in the supplied material and ready for human approval."
         else:
