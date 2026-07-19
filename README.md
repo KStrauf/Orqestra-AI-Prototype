@@ -21,18 +21,26 @@ npm run orqestra -- handoff latest
 Backend:
 
 ```bash
-cd apps/api
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python scripts/seed.py
-uvicorn app.main:app --reload --port 8000
+./scripts/start-backend.sh
 ```
 
-Frontend:
+The API is available at `http://localhost:8000` and can be checked with
+`http://localhost:8000/health`.
+
+Frontend (in a second terminal):
 
 ```bash
-npm run dev:web
+cd web
+npm install
+npm run dev
+```
+
+To connect the frontend to the backend instead of demo mode, create
+`web/.env.local` with:
+
+```bash
+VITE_DEMO_MODE=false
+VITE_API_URL=http://localhost:8000
 ```
 
 ## Local Admin

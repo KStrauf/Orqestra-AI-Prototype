@@ -1,10 +1,7 @@
 anthropic>=0.40,<1.0       # Anthropic adapter. Default provider.
-openai>=1.60,<2.0          # OpenAI adapter. Multi-provider is a product
-requirement.
-httpx>=0.27,<1.0           # Ollama talks plain HTTP. Already a transitive dep
-of both SDKs.
-PyYAML>=6.0,<7.0           # Manifests and output templates. "Agents are data"
-needs a data format.
+openai>=1.60,<2.0          # OpenAI adapter. Multi-provider is a product requirement.
+httpx>=0.27,<1.0           # Ollama talks plain HTTP. Already a transitive dep of both SDKs.
+PyYAML>=6.0,<7.0           # Manifests and output templates. "Agents are data" needs a data format.
 python-dotenv>=1.0,<2.0    # API keys from .env, never hardcoded.
-
-
+fastapi>=0.115,<1.0        # HTTP API for the Studio web client.
+uvicorn[standard]>=0.34,<1.0  # Local ASGI development server.
