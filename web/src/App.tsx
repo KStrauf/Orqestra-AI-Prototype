@@ -142,7 +142,7 @@ function App() {
         goal,
         material,
         material_name: "studio-notes.md",
-        variants: ["direct", "reflective"],
+        variants: ["direct", "reflective", "educational"],
       });
       setRunCache((current) => ({ ...current, [nextRun.run_id]: nextRun }));
       setHistory((current) => [summaryFromRun(nextRun), ...current.filter((item) => item.run_id !== nextRun.run_id)]);

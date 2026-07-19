@@ -10,6 +10,13 @@ function shortHash(value: string): string {
   return value ? `${value.slice(0, 10)}…` : "Not available";
 }
 
+function formatTimestamp(timestamp: string | null | undefined): string {
+  if (!timestamp) return "Not recorded";
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.valueOf())) return timestamp;
+  return date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
+
 function decisionExplanation(decision: Decision | undefined): string {
   if (!decision) return "No human decision has been recorded for this draft yet.";
   if (decision.decision === "approve") {
@@ -41,7 +48,10 @@ export function RunArtifacts({ run, selectedDraft, selectedDecision }: RunArtifa
           </div>
           <strong>{input?.path || "Workflow material"}</strong>
           <p className="artifact-meta">SHA-256 {shortHash(input?.sha256 || "")}</p>
-          <p className="artifact-copy">{input?.content || "This legacy run recorded the source path and fingerprint, but not the material body."}</p>
+          <details className="artifact-disclosure">
+            <summary>{input?.content ? "View source material" : "Source material unavailable"}</summary>
+            {input?.content && <p className="artifact-copy artifact-scroll">{input.content}</p>}
+          </details>
         </article>
 
         <article className="artifact-card artifact-drafts">
@@ -66,7 +76,7 @@ export function RunArtifacts({ run, selectedDraft, selectedDecision }: RunArtifa
             <span className="artifact-meta">{selectedDraft?.chars ?? 0} chars</span>
           </div>
           <strong>{selectedDraft?.variant || "No draft selected"}</strong>
-          <p className="artifact-copy">{selectedDraft?.text || "Select a draft above to inspect its full text."}</p>
+          <p className="artifact-copy artifact-scroll">{selectedDraft?.text || "Select a draft above to inspect its full text."}</p>
           <div className="why-panel">
             <span className="eyebrow">WHY THIS DRAFT</span>
             <p>The Specialist produced this {selectedDraft?.variant || "candidate"} alternative from the supplied material after following the Architect plan.</p>
@@ -107,8 +117,8 @@ export function RunArtifacts({ run, selectedDraft, selectedDecision }: RunArtifa
           <div className="artifact-facts">
             <div><span>Provider</span><strong>{run.provider}</strong></div>
             <div><span>Model</span><strong>{run.model}</strong></div>
-            <div><span>Started</span><strong>{run.started_at}</strong></div>
-            <div><span>Finished</span><strong>{run.finished_at || "In progress"}</strong></div>
+            <div><span>Started</span><strong>{formatTimestamp(run.started_at)}</strong></div>
+            <div><span>Finished</span><strong>{formatTimestamp(run.finished_at)}</strong></div>
           </div>
         </article>
       </div>
