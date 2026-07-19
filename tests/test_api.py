@@ -48,6 +48,7 @@ class StudioApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(loaded_response.status_code, 200)
         self.assertEqual(loaded_response.json()["run_id"], created["run_id"])
         self.assertEqual(loaded_response.json()["inputs"][0]["chars"], len("The Studio workflow is now testable."))
+        self.assertEqual(loaded_response.json()["inputs"][0]["content"], "The Studio workflow is now testable.")
 
     async def test_run_list_returns_newest_durable_summaries(self) -> None:
         for goal in ("First post", "Second post"):

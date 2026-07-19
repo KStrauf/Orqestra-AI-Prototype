@@ -125,6 +125,13 @@ function demoRun(input: CreateWorkflowInput): StudioRun {
     provider: "demo",
     model: "local-preview",
     temperature: 0.2,
+    inputs: [{
+      source: "workflow",
+      path: input.material_name,
+      sha256: "",
+      chars: input.material.length,
+      content: input.material,
+    }],
     status: "awaiting_approval",
     agent_plan:
       "Use the specialist to create two grounded drafts, then route them to review before any publication.",

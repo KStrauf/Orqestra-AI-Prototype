@@ -37,6 +37,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(loaded.agent_plan, result.agent_plan)
         self.assertEqual(len(provider.calls), 4)
         self.assertEqual(loaded.inputs[0].path, "business/inbox/build-notes.md")
+        self.assertEqual(loaded.inputs[0].content, request.material)
         self.assertIn("Material:", provider.calls[-1]["user_prompt"])
         self.assertIsNotNone(loaded.usage)
 
