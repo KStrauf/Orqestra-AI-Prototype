@@ -270,7 +270,11 @@ input:focus, select:focus, textarea:focus { border-color: var(--brand-600); box-
 .context-lock { color: var(--text-soft); font-size: var(--text-xs); }
 .studio-context { display: grid; gap: var(--space-5); }
 .context-agent-list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
-.context-agent-list li { display: flex; align-items: center; gap: var(--space-3); color: var(--text-default); font-size: var(--text-sm); }
+.context-agent-list > div { display: flex; align-items: flex-start; gap: var(--space-3); color: var(--text-default); font-size: var(--text-sm); }
+.context-agent-list > div > span:last-child { display: grid; gap: var(--space-1); padding-top: var(--space-1); }
+.context-agent-list strong, .context-agent-list small { display: block; }
+.context-agent-list strong { color: var(--text-strong); font-weight: var(--weight-semibold); }
+.context-agent-list small { color: var(--text-muted); font-size: var(--text-sm); line-height: var(--line-normal); }
 .context-agent-number { display: grid; place-items: center; width: var(--space-8); height: var(--space-8); border-radius: var(--radius-pill); color: var(--brand-700); background: var(--brand-50); font-size: var(--text-sm); font-weight: var(--weight-semibold); }
 .context-safety { padding: var(--space-4); border-radius: var(--radius-md); color: var(--warning-600); background: var(--warning-50); font-size: var(--text-sm); }
 .context-environment { display: grid; gap: var(--space-2); padding-top: var(--space-4); border-top: 1px solid var(--border-subtle); }
