@@ -21,9 +21,8 @@ import { TracePage } from "./components/TracePage";
 import { routeFromHash, type StudioRoute } from "./routes";
 import type { DecisionKind, Draft, RunSummary, StudioRun } from "./types";
 
-const initialGoal = "Write an approval-ready launch post";
-const initialMaterial =
-  "Orqestra Studio turns a goal into a small agent workflow, preserves the plan and review, and pauses before publication.";
+const initialGoal = "";
+const initialMaterial = "";
 
 function statusLabel(status: StudioRun["status"]): string {
   return status.replaceAll("_", " ");
@@ -161,6 +160,12 @@ function App() {
     setDecisionMode(null);
     setEditText(draft.text);
     setReason("");
+    window.requestAnimationFrame(() => {
+      document.getElementById("artifact-panel-title")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
   }
 
   function startDecision(mode: DecisionKind) {
