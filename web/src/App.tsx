@@ -9,6 +9,7 @@ import {
 import { AppShell } from "./components/AppShell";
 import { DashboardPage } from "./components/DashboardPage";
 import { DecisionControls } from "./components/DecisionControls";
+import { RunArtifacts } from "./components/RunArtifacts";
 import { DraftComparison } from "./components/DraftComparison";
 import { HistoryPage } from "./components/HistoryPage";
 import { NewRunPage } from "./components/NewRunPage";
@@ -235,7 +236,7 @@ function App() {
         <section className="run-workspace" aria-labelledby="current-run-title">
           <div className="run-header"><div><span className="eyebrow">CURRENT RUN</span><h2 id="current-run-title">{run.task}</h2></div><div className="run-header-meta"><span className="run-id">{run.run_id}</span></div></div>
           <PipelinePanel run={run} />
-          <div className="content-grid"><div><DraftComparison run={run} selectedDraftId={selectedDraftId} onSelect={selectDraft} />{selectedDraft && <DecisionControls draft={selectedDraft} mode={decisionMode} editText={editText} reason={reason} busy={busy} hasDecision={Boolean(selectedDecision)} onStart={startDecision} onCancel={() => setDecisionMode(null)} onEditTextChange={setEditText} onReasonChange={setReason} onSubmit={submitDecision} />}</div></div>
+          <div className="content-grid"><div><DraftComparison run={run} selectedDraftId={selectedDraftId} onSelect={selectDraft} />{selectedDraft && <DecisionControls draft={selectedDraft} mode={decisionMode} editText={editText} reason={reason} busy={busy} hasDecision={Boolean(selectedDecision)} onStart={startDecision} onCancel={() => setDecisionMode(null)} onEditTextChange={setEditText} onReasonChange={setReason} onSubmit={submitDecision} />}<RunArtifacts run={run} selectedDraft={selectedDraft} selectedDecision={selectedDecision} /></div></div>
         </section>
       </div>
     );
