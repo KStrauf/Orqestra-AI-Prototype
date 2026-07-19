@@ -176,14 +176,47 @@ def write(runs_dir: Path, record: RunRecord) -> Path:
     return path
 
 
+def _legacy_material(user_prompt: object) -> str | None:
+    """Recover material from the legacy workflow prompt when it is explicit."""
+    if not isinstance(user_prompt, str):
+        return None
+    marker = "Material:"
+    if marker not in user_prompt:
+        return None
+    material = user_prompt.split(marker, 1)[1].strip()
+    return material or None
+
+
+def _normalized_status(raw: dict[str, Any]) -> str:
+    """Give pre-Phase-1 records a stable status for history and trace views."""
+    status = raw.get("status")
+    if isinstance(status, str) and status.strip():
+        return status
+    if raw.get("published"):
+        return "published"
+    if raw.get("decisions"):
+        return "decided"
+    if raw.get("error"):
+        return "failed"
+    return "completed"
+
+
 def _load_nested(raw: dict[str, Any]) -> RunRecord:
     """Rebuild typed nested values from a decoded JSON object."""
-    raw["inputs"] = [Input(**item) for item in raw.get("inputs", [])]
+    recovered_material = _legacy_material(raw.get("user_prompt"))
+    normalized_inputs = []
+    for item in raw.get("inputs", []):
+        normalized = dict(item)
+        if normalized.get("content") is None and recovered_material is not None:
+            normalized["content"] = recovered_material
+        normalized_inputs.append(normalized)
+    raw["inputs"] = [Input(**item) for item in normalized_inputs]
     raw["drafts"] = [Draft(**item) for item in raw.get("drafts", [])]
     raw["decisions"] = [Decision(**item) for item in raw.get("decisions", [])]
     raw["published"] = [Published(**item) for item in raw.get("published", [])]
     if raw.get("usage") is not None:
         raw["usage"] = Usage(**raw["usage"])
+    raw["status"] = _normalized_status(raw)
     return RunRecord(**raw)
 
 

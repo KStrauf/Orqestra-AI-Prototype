@@ -179,6 +179,33 @@ class RunRecordTests(unittest.TestCase):
         self.assertIsNone(loaded.usage)
         self.assertEqual(loaded.decisions, [])
         self.assertEqual(loaded.published, [])
+        self.assertEqual(loaded.status, "completed")
+
+    def test_read_normalizes_legacy_status_and_recovers_explicit_material(self) -> None:
+        path = runrecord.run_path(self.runs_dir, self.record.run_id)
+        path.parent.mkdir(parents=True)
+        legacy_record = {
+            "schema_version": 1,
+            "run_id": self.record.run_id,
+            "agent": "orchestrator",
+            "task": "Write a post",
+            "started_at": "2026-07-18T12:00:00Z",
+            "finished_at": "2026-07-18T12:01:00Z",
+            "provider": "mock",
+            "model": "local",
+            "temperature": 0.7,
+            "system_prompt": "System",
+            "user_prompt": "Goal: Write a post\nMaterial: Recovered source material.",
+            "inputs": [{"source": "workflow", "path": "notes.md", "sha256": "abc", "chars": 26}],
+            "drafts": [],
+            "status": None,
+        }
+        path.write_text(json.dumps(legacy_record), encoding="utf-8")
+
+        loaded = runrecord.read(self.runs_dir, self.record.run_id)
+
+        self.assertEqual(loaded.status, "completed")
+        self.assertEqual(loaded.inputs[0].content, "Recovered source material.")
 
     def test_list_run_ids_returns_newest_first(self) -> None:
         runrecord.write(self.runs_dir, self.record)
