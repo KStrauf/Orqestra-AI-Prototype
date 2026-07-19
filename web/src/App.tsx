@@ -55,6 +55,7 @@ function App() {
   const [route, setRoute] = useState<StudioRoute>(() => routeFromHash(window.location.hash));
   const [goal, setGoal] = useState(initialGoal);
   const [material, setMaterial] = useState(initialMaterial);
+  const [platform, setPlatform] = useState("LinkedIn");
   const [run, setRun] = useState<StudioRun | null>(null);
   const [runCache, setRunCache] = useState<Record<string, StudioRun>>({});
   const [history, setHistory] = useState<RunSummary[]>([]);
@@ -142,6 +143,7 @@ function App() {
         material,
         material_name: "studio-notes.md",
         variants: ["direct", "reflective", "educational"],
+        platform,
       });
       setRunCache((current) => ({ ...current, [nextRun.run_id]: nextRun }));
       setHistory((current) => [summaryFromRun(nextRun), ...current.filter((item) => item.run_id !== nextRun.run_id)]);
@@ -255,7 +257,7 @@ function App() {
   let page: ReactNode;
   switch (route.name) {
     case "new-run":
-      page = <NewRunPage goal={goal} material={material} busy={busy} onGoalChange={setGoal} onMaterialChange={setMaterial} onSubmit={handleRun} />;
+      page = <NewRunPage goal={goal} material={material} platform={platform} busy={busy} onGoalChange={setGoal} onMaterialChange={setMaterial} onPlatformChange={setPlatform} onSubmit={handleRun} />;
       break;
     case "run":
       page = renderRunWorkspace();

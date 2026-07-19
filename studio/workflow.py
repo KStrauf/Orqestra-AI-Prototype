@@ -33,6 +33,7 @@ class ContentWorkflowRequest:
     material: str
     material_name: str = "workflow-material"
     variants: tuple[str, ...] = ("direct", "reflective")
+    platform: str = "general"
 
 
 @dataclass(frozen=True)
@@ -61,6 +62,8 @@ def run_content_workflow(
         raise ValueError("workflow goal cannot be empty")
     if not request.material.strip():
         raise ValueError("workflow material cannot be empty")
+    if not request.platform.strip():
+        raise ValueError("workflow platform cannot be empty")
     if not request.variants:
         raise ValueError("workflow requires at least one draft variant")
 
@@ -84,6 +87,7 @@ def run_content_workflow(
         system_prompt=architect.instructions,
         user_prompt=(
             f"Goal: {request.goal}\n"
+            f"Platform: {request.platform}\n"
             "Available templates: content_workflow\n"
             "Return a small agent plan."
         ),
@@ -100,6 +104,7 @@ def run_content_workflow(
             system_prompt=_prompt(specialist, f"Agent plan: {plan_reply.text}"),
             user_prompt=(
                 f"Goal: {request.goal}\n"
+                f"Platform: {request.platform}\n"
                 f"Material: {request.material}\n"
                 f"Variant: {variant}"
             ),
@@ -123,6 +128,7 @@ def run_content_workflow(
         system_prompt=reviewer.instructions,
         user_prompt=(
             f"Goal: {request.goal}\n"
+            f"Platform: {request.platform}\n"
             f"Material: {request.material}\n"
             "Review constraints: identify unsupported claims, factual gaps, "
             "tone problems, and format errors.\n"
@@ -153,7 +159,12 @@ def run_content_workflow(
         model=specialist_model,
         temperature=specialist.temperature,
         system_prompt=agents["orchestrator"].instructions,
-        user_prompt=f"Goal: {request.goal}\nMaterial: {request.material}",
+        user_prompt=(
+            f"Goal: {request.goal}\n"
+            f"Platform: {request.platform}\n"
+            f"Material: {request.material}"
+        ),
+        content_platform=request.platform,
         inputs=[
             runrecord.Input(
                 source="workflow",

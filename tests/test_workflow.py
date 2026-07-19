@@ -15,6 +15,7 @@ class WorkflowTests(unittest.TestCase):
                 goal="Write a post about today's build",
                 material="We replaced the brittle router with explicit manifests.",
                 material_name="business/inbox/build-notes.md",
+                platform="LinkedIn",
             )
 
             result = run_content_workflow(runs_dir, request, provider)
@@ -22,6 +23,7 @@ class WorkflowTests(unittest.TestCase):
 
         self.assertEqual(result.path, runrecord.run_path(runs_dir, result.record.run_id))
         self.assertEqual(loaded.provider, "mock")
+        self.assertEqual(loaded.content_platform, "LinkedIn")
         self.assertEqual(loaded.agent, "orchestrator")
         self.assertEqual(loaded.status, "awaiting_approval")
         self.assertEqual(len(loaded.drafts), 2)
@@ -39,6 +41,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(loaded.inputs[0].path, "business/inbox/build-notes.md")
         self.assertEqual(loaded.inputs[0].content, request.material)
         self.assertIn("Material:", provider.calls[-1]["user_prompt"])
+        self.assertIn("Platform: LinkedIn", provider.calls[-1]["user_prompt"])
         self.assertIsNotNone(loaded.usage)
 
     def test_empty_workflow_inputs_are_rejected(self) -> None:
@@ -52,6 +55,12 @@ class WorkflowTests(unittest.TestCase):
             run_content_workflow(
                 Path("data/runs"),
                 ContentWorkflowRequest(goal="Do work", material=""),
+            )
+
+        with self.assertRaisesRegex(ValueError, "platform cannot be empty"):
+            run_content_workflow(
+                Path("data/runs"),
+                ContentWorkflowRequest(goal="Do work", material="Some notes", platform=" "),
             )
 
 

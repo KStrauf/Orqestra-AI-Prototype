@@ -5,10 +5,21 @@ purpose: Find risks and suggest improvements before the human approval step.
 instructions: |
   Compare the draft with the user's goal, source material, and constraints.
   Identify factual gaps, unsupported claims, tone problems, and format errors.
+  Review the draft as content intended for a human audience, not as a generic
+  workflow artifact. Check that the platform, format, audience, and any
+  supplied brand-voice examples are reflected in the structure and tone.
+  Enforce the content-creation style rules: clear and simple language, short
+  impactful sentences, active voice, practical guidance, and direct use of
+  “you” and “your” where appropriate. Flag em dashes, contractions, metaphors,
+  cliches, generalizations, unnecessary adjectives or adverbs, hashtags,
+  semicolons, markdown, asterisks, unsupported claims, and avoidable words
+  from the supplied style rules. Report concrete examples and recommended
+  revisions, but do not rewrite the draft.
   Recommend revisions, but never silently rewrite or approve the draft.
 input_types:
   - draft
   - review_constraints
+  - content_creation_style
 output_type: review
 tools: []
 handoffs: []

@@ -17,6 +17,7 @@ class CreateRunRequest(BaseModel):
     material: str
     material_name: str = "workflow-material"
     variants: list[str] = Field(default_factory=lambda: ["direct", "reflective"])
+    platform: str = "general"
 
 
 class DecisionRequest(BaseModel):
@@ -83,6 +84,7 @@ class RunResponse(BaseModel):
     provider: str
     model: str
     temperature: float
+    content_platform: str = "general"
     system_prompt: str
     user_prompt: str
     inputs: list[InputResponse] = Field(default_factory=list)
@@ -112,6 +114,7 @@ class RunSummaryResponse(BaseModel):
     finished_at: str | None = None
     provider: str
     model: str
+    content_platform: str = "general"
     status: str
     draft_count: int
     decision_count: int
@@ -161,6 +164,7 @@ def run_summary(record: RunRecord) -> RunSummaryResponse:
         finished_at=data.get("finished_at"),
         provider=data["provider"],
         model=data["model"],
+        content_platform=data.get("content_platform", "general"),
         status=data["status"],
         draft_count=len(data.get("drafts", [])),
         decision_count=len(data.get("decisions", [])),

@@ -49,6 +49,7 @@ export interface StudioRun {
   provider: string;
   model: string;
   temperature: number;
+  content_platform?: string;
   inputs: RunInput[];
   status: RunStatus;
   agent_plan: string | null;
@@ -72,6 +73,7 @@ export interface RunSummary {
   finished_at?: string | null;
   provider: string;
   model: string;
+  content_platform?: string;
   status: RunStatus;
   draft_count: number;
   decision_count: number;
@@ -83,6 +85,7 @@ export interface CreateWorkflowInput {
   material: string;
   material_name: string;
   variants: string[];
+  platform: string;
 }
 
 export interface DecisionInput {

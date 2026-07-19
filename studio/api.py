@@ -123,6 +123,7 @@ def create_run(request: CreateRunRequest) -> RunResponse:
                 material=request.material,
                 material_name=request.material_name,
                 variants=tuple(request.variants),
+                platform=request.platform,
             ),
             provider=_provider(),
         )

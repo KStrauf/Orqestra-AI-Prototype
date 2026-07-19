@@ -4,9 +4,11 @@ import { ComposerPanel } from "./ComposerPanel";
 interface NewRunPageProps {
   goal: string;
   material: string;
+  platform: string;
   busy: boolean;
   onGoalChange: (value: string) => void;
   onMaterialChange: (value: string) => void;
+  onPlatformChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }
 

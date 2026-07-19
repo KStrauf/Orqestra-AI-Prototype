@@ -111,6 +111,7 @@ class RunRecord:
 
     system_prompt: str
     user_prompt: str
+    content_platform: str = "general"
 
     finished_at: str | None = None
     duration_ms: int | None = None

@@ -23,6 +23,15 @@ class ManifestTests(unittest.TestCase):
         self.assertEqual(agents["orchestrator"].handoffs, ("specialist", "reviewer"))
         self.assertTrue(agents["reviewer"].requires_approval)
 
+    def test_content_agents_include_creation_style_guidance(self) -> None:
+        agents = load_builtin_agents()
+
+        self.assertIn("Content creation skill", agents["specialist"].instructions)
+        self.assertIn("Avoid em dashes", agents["specialist"].instructions)
+        self.assertIn("platform", agents["specialist"].instructions)
+        self.assertIn("Enforce the content-creation style rules", agents["reviewer"].instructions)
+        self.assertIn("unsupported claims", agents["reviewer"].instructions)
+
     def test_manifest_defaults_are_applied(self) -> None:
         with TemporaryDirectory() as temporary:
             path = Path(temporary) / "minimal.yaml"

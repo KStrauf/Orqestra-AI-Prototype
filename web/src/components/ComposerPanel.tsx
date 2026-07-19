@@ -3,18 +3,22 @@ import type { FormEvent } from "react";
 interface ComposerPanelProps {
   goal: string;
   material: string;
+  platform: string;
   busy: boolean;
   onGoalChange: (value: string) => void;
   onMaterialChange: (value: string) => void;
+  onPlatformChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }
 
 export function ComposerPanel({
   goal,
   material,
+  platform,
   busy,
   onGoalChange,
   onMaterialChange,
+  onPlatformChange,
   onSubmit,
 }: ComposerPanelProps) {
   return (
@@ -43,6 +47,24 @@ export function ComposerPanel({
             onChange={(event) => onMaterialChange(event.target.value)}
             placeholder="Paste the facts, notes, or constraints the team should use"
           />
+        </label>
+        <label>
+          <span>Content platform</span>
+          <select value={platform} onChange={(event) => onPlatformChange(event.target.value)}>
+            <option>LinkedIn</option>
+            <option>X</option>
+            <option>Instagram</option>
+            <option>Facebook</option>
+            <option>TikTok</option>
+            <option>YouTube</option>
+            <option>Lemon8</option>
+            <option>Snapchat</option>
+            <option>Spotify</option>
+            <option>Amazon Podcasts</option>
+            <option>Apple Podcasts</option>
+            <option>Wondery</option>
+          </select>
+          <small className="field-help">Shapes the draft for this channel. Nothing publishes automatically.</small>
         </label>
         <div className="form-footer">
           <span className="helper-text">

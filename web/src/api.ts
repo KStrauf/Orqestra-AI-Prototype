@@ -138,6 +138,7 @@ function demoRun(input: CreateWorkflowInput): StudioRun {
       chars: input.material.length,
       content: input.material,
     }],
+    content_platform: input.platform,
     status: "awaiting_approval",
     agent_plan:
       "Use the specialist to create distinct grounded drafts, then route them to review before any publication.",
