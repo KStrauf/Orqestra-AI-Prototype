@@ -28,5 +28,8 @@ build-backend = "setuptools.build_meta"
 # Ship the engine. DO NOT ship `business` or `data` - those are the company, not the product.
 packages = ["engine", "engine.tools", "engine.providers", "studio"]
 
+[tool.setuptools.package-data]
+studio = ["agents/*.yaml", "skills/*.yaml"]
+
 # That [project.scripts] block is the small piece of magic that turns
 # python -m engine.cli into just orq.

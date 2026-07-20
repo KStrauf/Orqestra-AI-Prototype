@@ -87,6 +87,23 @@ class StudioApiTests(unittest.IsolatedAsyncioTestCase):
         fetched = await self.client.get("/api/studio/brand-profile")
         self.assertEqual(fetched.json()["social_links"]["linkedin"], "https://linkedin.example/creator")
 
+    async def test_idea_coach_returns_concrete_directions_and_sample_post(self) -> None:
+        response = await self.client.post(
+            "/api/studio/idea-coach",
+            json={
+                "idea": "5 Codex Skills",
+                "platform": "LinkedIn",
+                "audience": "early-stage builders",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["recommended_direction_id"], "practical-breakdown")
+        self.assertEqual(len(body["directions"]), 3)
+        self.assertTrue(body["sample_post"])
+        self.assertIn("Core idea: 5 Codex Skills", body["starter_brief"])
+
     async def test_run_list_returns_newest_durable_summaries(self) -> None:
         for goal in ("First post", "Second post"):
             response = await self.client.post(

@@ -5,6 +5,7 @@ import unittest
 from engine.content import (
     BrandProfile,
     build_hook_candidates,
+    coach_idea,
     grade_drafts,
     platform_profile,
     read_brand_profile,
@@ -49,6 +50,16 @@ class ContentCapabilityTests(unittest.TestCase):
         self.assertTrue(drafts[0].constraint_violations)
         self.assertLess(report.scores["platform_fit"], 8)
         self.assertTrue(any("idea" in issue for issue in report.issues))
+
+    def test_idea_coach_returns_directions_sample_and_editable_brief(self) -> None:
+        result = coach_idea("5 Codex Skills", "LinkedIn")
+
+        self.assertEqual(len(result.directions), 3)
+        self.assertEqual(result.recommended_direction_id, "practical-breakdown")
+        self.assertTrue(result.sample_post)
+        self.assertIn("Core idea: 5 Codex Skills", result.starter_brief)
+        self.assertIn("Recommended direction:", result.starter_brief)
+        self.assertTrue(result.assumptions)
 
     def test_brand_profile_persists_separately_from_run_records(self) -> None:
         with TemporaryDirectory() as temporary:

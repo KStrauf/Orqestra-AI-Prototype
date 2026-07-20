@@ -44,6 +44,12 @@ export function RunArtifacts({ run, selectedDraft, selectedDecision }: RunArtifa
         </div>
         <span className="artifact-count">{run.drafts.length} drafts · {run.decisions.length} decisions</span>
       </div>
+      <details className="artifact-evidence">
+        <summary>
+          <span>Workflow evidence</span>
+          <small>Content brief, hook directions, and review checks</small>
+        </summary>
+        <div className="artifact-evidence-grid">
       {run.content_brief && (
         <article className="artifact-card artifact-brief">
           <div className="artifact-card-heading">
@@ -92,6 +98,8 @@ export function RunArtifacts({ run, selectedDraft, selectedDecision }: RunArtifa
           {run.quality_report.issues.length > 0 && <div className="why-panel"><span className="eyebrow">WATCH FOR</span><ul>{run.quality_report.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul></div>}
         </article>
       )}
+        </div>
+      </details>
       <div className="artifact-grid">
         <article className="artifact-card artifact-source">
           <div className="artifact-card-heading">

@@ -67,14 +67,19 @@ class MockProvider:
             variant = _prompt_value(user_prompt, "Variant") or "default"
             goal = _prompt_value(user_prompt, "Goal") or "the requested task"
             material = _prompt_value(user_prompt, "Material") or "the supplied material"
-            variant_descriptions = {
-                "direct": "Lead with the clearest claim and next action.",
-                "reflective": "Connect the change to the lesson it reveals.",
-                "educational": "Explain the idea step by step so it is easy to apply.",
-                "contrarian": "Challenge the obvious framing with a useful counterpoint.",
-            }
-            angle = variant_descriptions.get(variant.lower(), "Take a distinct angle on the supplied material.")
-            text = f"{variant.title()} draft for {goal}: {angle} {material}"
+            platform = _prompt_value(user_prompt, "Platform") or "the selected platform"
+            audience = _prompt_value(user_prompt, "Audience") or "the audience"
+            outcome = _prompt_value(user_prompt, "Desired outcome") or "give the audience a useful next step"
+            hook = _prompt_value(user_prompt, "Hook direction") or "Start with the clearest useful point."
+            text = _demo_draft(
+                goal=goal,
+                material=material,
+                variant=variant,
+                platform=platform,
+                audience=audience,
+                outcome=outcome,
+                hook=hook,
+            )
         elif "agent plan" in user_prompt.lower():
             text = "Use the specialist to create distinct drafts, then send them to the reviewer."
         elif "review" in system_prompt.lower() or "Drafts:" in user_prompt:
@@ -256,6 +261,79 @@ def _prompt_value(prompt: str, label: str) -> str | None:
         if line.startswith(prefix):
             return line[len(prefix) :].strip()
     return None
+
+
+def _demo_draft(
+    *,
+    goal: str,
+    material: str,
+    variant: str,
+    platform: str,
+    audience: str,
+    outcome: str,
+    hook: str,
+) -> str:
+    """Create a useful offline draft with visible editorial transformation.
+
+    Demo mode must show more than an echo of the request. This small composer
+    adds a hook, structure, audience framing, and a next action while keeping
+    supplied material clearly separate from generated connective language.
+    """
+    clean_goal = " ".join(goal.strip().split()).rstrip("?.!")
+    topic = clean_goal
+    lowered = clean_goal.lower()
+    for prefix in ("how do i ", "how to ", "write a post about ", "create a post about "):
+        if lowered.startswith(prefix):
+            topic = clean_goal[len(prefix):].strip()
+            break
+    source = " ".join(material.strip().split())
+    if source.startswith("(No source material supplied"):
+        source = "No source material supplied. Add one fact or example from your experience before approval."
+    source = source.rstrip(". ")
+    audience_text = audience.strip()
+    if audience_text.lower().startswith("not specified"):
+        audience_text = "the people you want to reach"
+    audience_text = audience_text.rstrip(". ")
+    outcome_text = outcome.strip()
+    if outcome_text.lower().startswith("teach or help"):
+        outcome_text = "help the audience understand something useful"
+    outcome_text = outcome_text.rstrip(". ")
+    hook = hook.replace("Not specified; infer a reasonable audience from the idea.", audience_text)
+    variant_key = variant.lower()
+    label = f"{variant.title()} draft for {goal}"
+
+    if variant_key == "reflective":
+        body = (
+            f"{hook}\n\n"
+            f"The useful lesson in {topic.lower()} is to make the first step concrete for {audience_text}. "
+            f"Use this context as your starting point: {source}.\n\n"
+            f"Then ask what would make the next step easier for someone else. "
+            f"That keeps the post focused on {outcome_text.lower()} instead of repeating the idea."
+        )
+    elif variant_key == "educational":
+        body = (
+            f"How to approach {topic.lower()}:\n\n"
+            f"1. Start with the problem or question your audience has.\n"
+            f"2. Use this supplied context: {source}.\n"
+            f"3. End with one action that helps {audience_text} move forward.\n\n"
+            f"The goal is to {outcome_text.lower()} without asking the reader to fill in the missing steps."
+        )
+    elif variant_key == "contrarian":
+        body = (
+            f"The obvious way to talk about {topic.lower()} is to list the answer. "
+            f"A more useful post starts with the decision behind it.\n\n"
+            f"Use this grounded detail: {source}. Then explain what you would do first and why. "
+            f"Give {audience_text} a practical way to respond or try it."
+        )
+    else:
+        body = (
+            f"Trying to {topic.lower()}? Start with the clearest useful step.\n\n"
+            f"Here is the context to work from: {source}. "
+            f"Turn it into one concrete recommendation for {audience_text}, then tell the reader what to do next.\n\n"
+            f"Next step: {outcome_text}."
+        )
+
+    return f"{label}\n\n{body}\n\nPlatform: {platform}."
 
 
 def resolve_model(provider: TextProvider, requested_model: str) -> str:

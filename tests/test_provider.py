@@ -36,6 +36,29 @@ class ProviderTests(unittest.TestCase):
         self.assertGreater(reply.input_tokens, 0)
         self.assertGreater(reply.output_tokens, 0)
 
+    def test_mock_content_draft_adds_structure_instead_of_echoing_the_request(self) -> None:
+        provider = MockProvider()
+
+        reply = provider.complete(
+            system_prompt="Create a content draft.",
+            user_prompt=(
+                "Goal: How do I join a beer league hockey league?\n"
+                "Platform: X\n"
+                "Audience: local players\n"
+                "Desired outcome: Help people take the first step\n"
+                "Material: within 20 miles of Austin, TX\n"
+                "Variant: educational\n"
+                "Hook direction: Start with the clearest useful point."
+            ),
+            model="demo-model",
+            temperature=0.7,
+        )
+
+        self.assertIn("Educational draft", reply.text)
+        self.assertIn("1. Start with the problem", reply.text)
+        self.assertIn("within 20 miles of Austin, TX", reply.text)
+        self.assertNotEqual(reply.text, "Educational draft for How do I join a beer league hockey league?: Help people take the first step within 20 miles of Austin, TX")
+
     def test_unknown_provider_is_a_clean_error(self) -> None:
         with self.assertRaisesRegex(ProviderError, "not available"):
             get_provider("future-provider")

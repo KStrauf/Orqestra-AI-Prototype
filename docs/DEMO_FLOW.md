@@ -12,13 +12,16 @@ The primary demo is a single happy-path run that takes roughly three minutes and
 ## Live sequence
 
 1. Enter the idea in the composer; explain that a finished brief is optional.
-2. Optionally paste source material and select a target platform.
-3. Run the workflow and call out the visible `Architect → Specialist → Reviewer` pipeline.
-4. Open the content brief and hook directions to show how the idea becomes usable directions.
-5. Compare the direct, reflective, and educational Specialist variants.
-6. Read the Reviewer notes and quality checks, emphasizing that they surface risks rather than auto-approve.
-7. Edit the preferred draft, record the decision, and point out that the run remains locally persisted.
-8. Reopen or show the run record and identify the provider, model, skill versions, creator context snapshot, timestamps, decision, and diff.
+2. Use Idea Coach to show a recommended direction, three ways to approach the
+   idea, and a sample starter post.
+3. Choose a direction, adjust the editable brief if needed, optionally paste
+   source material, and select a target platform.
+4. Run the workflow and call out the visible `Architect → Specialist → Reviewer` pipeline.
+5. Open the content brief and hook directions to show how the idea becomes usable directions.
+6. Compare the direct, reflective, and educational Specialist variants.
+7. Read the Reviewer notes and quality checks, emphasizing that they surface risks rather than auto-approve.
+8. Edit the preferred draft, record the decision, and point out that the run remains locally persisted.
+9. Reopen or show the run record and identify the provider, model, skill versions, creator context snapshot, timestamps, decision, and diff.
 
 ## Backup path
 

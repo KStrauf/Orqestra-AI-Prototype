@@ -15,12 +15,12 @@ interface IdeaCoachProps {
   onBriefChange: (value: string) => void;
 }
 
-function briefForDirection(result: IdeaCoachResult, direction: IdeaDirection): string {
+function briefForDirection(result: IdeaCoachResult, idea: string, direction: IdeaDirection): string {
   return [
     `Audience: ${result.audience}`,
     `Outcome: ${result.outcome}`,
     `Voice: ${result.tone}`,
-    `Core idea: ${result.directions.find((item) => item.direction_id === direction.direction_id)?.title || ""}`,
+    `Core idea: ${idea.trim()}`,
     `Recommended direction: ${direction.title}`,
     `Format: ${direction.format}`,
     `Opening: ${direction.opening}`,
@@ -66,7 +66,7 @@ export function IdeaCoach({
   function selectDirection(direction: IdeaDirection) {
     if (!result) return;
     setSelectedDirectionId(direction.direction_id);
-    onBriefChange(briefForDirection(result, direction));
+    onBriefChange(briefForDirection(result, idea, direction));
   }
 
   const selectedDirection = result?.directions.find((direction) => direction.direction_id === selectedDirectionId);

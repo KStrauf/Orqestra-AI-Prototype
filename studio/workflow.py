@@ -163,7 +163,11 @@ def run_content_workflow(
                 f"{content_context}\n"
                 f"Material: {material_context}\n"
                 f"Variant: {variant}\n"
-                f"Hook direction: {hook_candidate.text if hook_candidate else 'Choose a grounded opening.'}"
+                f"Hook direction: {hook_candidate.text if hook_candidate else 'Choose a grounded opening.'}\n"
+                "Return the finished content, not a description of what a draft could say. "
+                "Do not repeat the goal as a label or write 'draft for'. Transform the idea "
+                "and supplied material into a coherent post with an opening, useful body, "
+                "and concrete next action."
             ),
             model=specialist_model,
             temperature=specialist.temperature,

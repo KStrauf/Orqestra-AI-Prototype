@@ -8,7 +8,9 @@ runtime agents and not dependencies of this repository.
 
 - `brand_context`: optional creator audience, voice, CTA, point of view, story,
   and social-link context.
-- `idea_coach`: turns an incomplete idea into a content brief.
+- `idea_coach`: turns an incomplete idea into a recommendation, three concrete
+  content directions, a sample starter post, an editable brief, and assumptions
+  to check before drafting.
 - `hook_strategist`: records grounded hook directions for comparison.
 - `post_writer`: gives the Specialist platform and brief context for distinct
   draft variants.
@@ -17,6 +19,9 @@ runtime agents and not dependencies of this repository.
 
 The current run record preserves the skill versions, brand snapshot, hook
 candidates, and quality report alongside the existing drafts and decisions.
+The standalone `POST /api/studio/idea-coach` contract lets the composer coach an
+idea before a run is created; demo mode returns the same structured shape
+without requiring a provider.
 
 ## What is intentionally different
 

@@ -1,15 +1,18 @@
 # Orqestra Studio
 
-Orqestra Studio is a reviewable multi-agent content workflow for turning a goal and source material into several draft variants. An Architect plans the work, a Specialist produces drafts, and a Reviewer surfaces risks before a human approves, edits, or rejects a draft.
+Orqestra Studio is a reviewable multi-agent content workspace for turning an idea or source material into platform-aware content directions and draft variants. An Architect shapes the brief, a Specialist produces drafts, and a Reviewer surfaces risks before a human approves, edits, or rejects a draft.
 
 The hackathon MVP is deliberately small: it demonstrates useful agent handoffs, visible intermediate work, a hard human gate, provider-neutral inference, and durable local run records. Nothing is published automatically.
 
 ## What is included
 
-- Goal and source-material composer in the Vite + React frontend.
+- Idea-first composer with optional source material, audience, outcome, tone, platform, and creator context.
 - Architect → Specialist → Reviewer workflow in `studio/`.
-- Multiple named draft variants, currently `direct` and `reflective` by default.
+- Multiple named draft variants, including direct, reflective, and educational angles.
+- Versioned content capabilities for idea coaching, grounded hooks, platform writing, and editorial checks.
+- Durable creator profile context for audience, voice traits, CTA, point of view, stories, and social links.
 - Reviewer notes and the Architect's plan shown alongside the drafts.
+- Hook directions and transparent quality checks shown as review artifacts, not engagement guarantees.
 - Approve, edit, and reject decisions with durable JSON persistence.
 - Deterministic mock inference for tests and a local Ollama adapter for Qwen-first development.
 - Provider and model metadata recorded on each run.
@@ -17,8 +20,8 @@ The hackathon MVP is deliberately small: it demonstrates useful agent handoffs, 
 ## Repository map
 
 ```text
-studio/       FastAPI routes, workflow orchestration, manifests, and plans
-engine/       Configuration, providers, CLI, errors, and run persistence
+studio/       FastAPI routes, workflow orchestration, manifests, skills, and plans
+engine/       Configuration, providers, content primitives, CLI, errors, and run persistence
 web/          Vite + React + TypeScript Studio workspace
 tests/        Python regression tests
 docs/         Product, scope, architecture, requirements, and demo source of truth
@@ -74,16 +77,19 @@ ORQ_OLLAMA_MODEL=qwen3:1.7b
 ./scripts/start-backend.sh
 ```
 
-The adapter uses Ollama's local `/api/chat` endpoint. OpenAI is a planned adapter behind the same provider contract; it is not required for the current MVP.
+The adapter uses Ollama's local `/api/chat` endpoint. OpenAI is available behind the same provider contract for later keyed use; it is not required for the current MVP.
 
 ## Current Studio API
 
 - `GET /health`
 - `POST /api/studio/runs`
+- `GET /api/studio/runs`
 - `GET /api/studio/runs/{run_id}`
 - `POST /api/studio/runs/{run_id}/decisions`
+- `GET /api/studio/brand-profile`
+- `PUT /api/studio/brand-profile`
 
-Run records are the source of truth and are written atomically under `data/runs/YYYY-MM-DD/`. The API contract will be stabilized and extended in Phase 1 without breaking these routes.
+Run records are the source of truth and are written atomically under `data/runs/YYYY-MM-DD/`. Optional creator context is stored at `data/brand-profile.json` and snapshotted into each run.
 
 ## Product source of truth
 

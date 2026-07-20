@@ -189,16 +189,10 @@ export async function coachIdea(input: IdeaCoachInput): Promise<IdeaCoachResult>
 
 function demoRun(input: CreateWorkflowInput): StudioRun {
   const runId = `demo-${Date.now()}`;
-  const variantDescriptions: Record<string, string> = {
-    direct: "Lead with the clearest claim and next action.",
-    reflective: "Connect the change to the lesson it reveals.",
-    educational: "Explain the idea step by step so it is easy to apply.",
-    contrarian: "Challenge the obvious framing with a useful counterpoint.",
-  };
   const drafts = input.variants.map((variant, index) => ({
     draft_id: `${runId}#${index + 1}`,
     variant,
-    text: `${variant[0].toUpperCase()}${variant.slice(1)} draft for ${input.goal}: ${variantDescriptions[variant] || "Take a distinct angle on the supplied material."} ${input.material}`,
+    text: demoDraftText(input, variant),
     chars: 0,
     constraint_violations: [],
   }));
@@ -263,4 +257,28 @@ function demoRun(input: CreateWorkflowInput): StudioRun {
       cost_is_estimate: false,
     },
   };
+}
+
+function demoDraftText(input: CreateWorkflowInput, variant: string): string {
+  const goal = input.goal.trim().replace(/[?.!]$/, "");
+  const normalizedGoal = goal.toLowerCase();
+  const prefixes = ["how do i ", "how to ", "write a post about ", "create a post about "];
+  const prefix = prefixes.find((candidate) => normalizedGoal.startsWith(candidate));
+  const topic = prefix ? goal.slice(prefix.length).trim() : goal;
+  const source = input.material.trim() || "No source material was supplied, so add one fact or example from your experience before approval.";
+  const audience = input.audience?.trim() || "your audience";
+  const outcome = input.outcome?.trim() || "give the audience a useful next step";
+  const hook = "Start with the clearest useful point.";
+  const opening = `${variant[0].toUpperCase()}${variant.slice(1)} draft for ${input.goal}`;
+
+  if (variant === "reflective") {
+    return `${opening}\n\n${hook}\n\nThe useful lesson in ${topic.toLowerCase()} is to make the first step concrete for ${audience}. Use this context as your starting point: ${source}.\n\nThen ask what would make the next step easier for someone else. That keeps the post focused on ${outcome.toLowerCase()} instead of repeating the idea.\n\nPlatform: ${input.platform}.`;
+  }
+  if (variant === "educational") {
+    return `${opening}\n\nHow to approach ${topic.toLowerCase()}:\n\n1. Start with the problem or question your audience has.\n2. Use this supplied context: ${source}.\n3. End with one action that helps ${audience} move forward.\n\nThe goal is to ${outcome.toLowerCase()} without asking the reader to fill in the missing steps.\n\nPlatform: ${input.platform}.`;
+  }
+  if (variant === "contrarian") {
+    return `${opening}\n\nThe obvious way to talk about ${topic.toLowerCase()} is to list the answer. A more useful post starts with the decision behind it.\n\nUse this grounded detail: ${source}. Then explain what you would do first and why. Give ${audience} a practical way to respond or try it.\n\nPlatform: ${input.platform}.`;
+  }
+  return `${opening}\n\nTrying to ${topic.toLowerCase()}? Start with the clearest useful step.\n\nHere is the context to work from: ${source}. Turn it into one concrete recommendation for ${audience}, then tell the reader what to do next.\n\nNext step: ${outcome}.\n\nPlatform: ${input.platform}.`;
 }

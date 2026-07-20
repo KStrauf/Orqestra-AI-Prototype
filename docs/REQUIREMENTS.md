@@ -18,6 +18,9 @@
 - Stop in an approval-waiting state after review.
 - Make explicit assumptions when a run starts without source material.
 - Produce grounded hook directions before Specialist drafting.
+- Help users who have only a rough idea by recommending a useful angle,
+  showing multiple directions, and providing a sample starter post before
+  they create drafts.
 - Apply conservative platform checks without claiming engagement outcomes.
 
 ### Review and decisions
