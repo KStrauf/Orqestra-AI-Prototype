@@ -58,6 +58,34 @@ class StudioApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(loaded_response.json()["run_id"], created["run_id"])
         self.assertEqual(loaded_response.json()["inputs"][0]["chars"], len("The Studio workflow is now testable."))
         self.assertEqual(loaded_response.json()["inputs"][0]["content"], "The Studio workflow is now testable.")
+        self.assertEqual(len(created["hook_candidates"]), 2)
+        self.assertIn("platform_fit", created["quality_report"]["scores"])
+        self.assertIn("post_writer", created["skill_versions"])
+
+    async def test_brand_profile_is_durable_and_used_by_later_runs(self) -> None:
+        saved = await self.client.put(
+            "/api/studio/brand-profile",
+            json={
+                "name": "Creator",
+                "audience": "builders",
+                "voice_traits": ["warm", "direct"],
+                "primary_cta": "Share your experience",
+                "social_links": {"linkedin": "https://linkedin.example/creator"},
+            },
+        )
+
+        self.assertEqual(saved.status_code, 200)
+        self.assertEqual(saved.json()["audience"], "builders")
+
+        created = (await self.client.post(
+            "/api/studio/runs",
+            json={"goal": "Explain a useful idea", "material": "A source-backed idea."},
+        )).json()
+
+        self.assertEqual(created["brand_profile"]["name"], "Creator")
+        self.assertEqual(created["brand_profile"]["voice_traits"], ["warm", "direct"])
+        fetched = await self.client.get("/api/studio/brand-profile")
+        self.assertEqual(fetched.json()["social_links"]["linkedin"], "https://linkedin.example/creator")
 
     async def test_run_list_returns_newest_durable_summaries(self) -> None:
         for goal in ("First post", "Second post"):

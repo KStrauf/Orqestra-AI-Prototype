@@ -1,0 +1,11 @@
+id: repurpose
+name: Repurpose
+description: Turns one supplied source into user-selected platform-native content outputs.
+owner_stage: specialist
+input_types:
+  - source_material
+  - target_platforms
+  - brand_profile_snapshot
+output_type: repurposed_draft_batch
+version: 1.0.0
+requires_human_gate: true

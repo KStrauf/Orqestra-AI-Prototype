@@ -1,0 +1,11 @@
+id: post_grader
+name: Editorial grader
+description: Checks grounding, clarity, platform fit, voice fit, and review risks without auto-approving.
+owner_stage: reviewer
+input_types:
+  - draft_variants
+  - content_brief
+  - brand_profile_snapshot
+output_type: quality_report
+version: 1.0.0
+requires_human_gate: true

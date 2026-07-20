@@ -17,6 +17,10 @@ function formatTimestamp(timestamp: string | null | undefined): string {
   return date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
+function decisionTimestamp(decision: Decision | undefined): string {
+  return decision ? formatTimestamp(decision.at) : "Not recorded";
+}
+
 function decisionExplanation(decision: Decision | undefined): string {
   if (!decision) return "No human decision has been recorded for this draft yet.";
   if (decision.decision === "approve") {
@@ -53,6 +57,39 @@ export function RunArtifacts({ run, selectedDraft, selectedDecision }: RunArtifa
           </div>
           <p className="artifact-copy"><strong>Core idea:</strong> {run.content_brief.core_idea}</p>
           <div className="brief-angle-list"><span className="eyebrow">DRAFT ANGLES</span>{run.content_brief.angles.map((angle) => <span key={angle}>{angle}</span>)}</div>
+        </article>
+      )}
+      {run.hook_candidates && run.hook_candidates.length > 0 && (
+        <article className="artifact-card artifact-hooks">
+          <div className="artifact-card-heading">
+            <span className="eyebrow">HOOK DIRECTIONS</span>
+            <span className="artifact-meta">Specialist starting points</span>
+          </div>
+          <p className="artifact-meta">The team generated grounded openings for comparison. They are editorial options, not performance promises.</p>
+          <div className="hook-list">
+            {run.hook_candidates.map((hook) => (
+              <div className="hook-row" key={hook.hook_id}>
+                <div><strong>{hook.pattern}</strong><span>{hook.variant}</span></div>
+                <p>{hook.text}</p>
+                <small>{hook.rationale}</small>
+              </div>
+            ))}
+          </div>
+        </article>
+      )}
+      {run.quality_report && (
+        <article className="artifact-card artifact-quality">
+          <div className="artifact-card-heading">
+            <span className="eyebrow">REVIEW CHECKS</span>
+            <span className="quality-score">{run.quality_report.overall}/10 review signal</span>
+          </div>
+          <p className="artifact-meta">{run.quality_report.method}</p>
+          <div className="quality-grid">
+            {Object.entries(run.quality_report.scores).map(([label, score]) => (
+              <div key={label}><span>{label.replaceAll("_", " ")}</span><strong>{score}/10</strong></div>
+            ))}
+          </div>
+          {run.quality_report.issues.length > 0 && <div className="why-panel"><span className="eyebrow">WATCH FOR</span><ul>{run.quality_report.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul></div>}
         </article>
       )}
       <div className="artifact-grid">
@@ -122,12 +159,21 @@ export function RunArtifacts({ run, selectedDraft, selectedDecision }: RunArtifa
             <span className="eyebrow">DECISION ARTIFACT</span>
             {selectedDecision && <span className={`decision-tag ${selectedDecision.decision}`}>{selectedDecision.decision}</span>}
           </div>
+          <div className="decision-receipt-facts">
+            <div><span>Draft</span><strong>{selectedDraft?.variant || "No draft selected"}</strong></div>
+            <div><span>Recorded</span><strong>{decisionTimestamp(selectedDecision)}</strong></div>
+          </div>
           <div className="why-panel">
             <span className="eyebrow">WHY THIS DECISION</span>
             <p>{decisionExplanation(selectedDecision)}</p>
           </div>
           {selectedDecision?.reason && <p className="artifact-copy"><strong>Rationale:</strong> {selectedDecision.reason}</p>}
-          {selectedDecision?.edited_text && <div className="artifact-edited"><span className="eyebrow">EDITED DRAFT</span><p className="artifact-copy">{selectedDecision.edited_text}</p></div>}
+          {selectedDecision?.edited_text && (
+            <details className="artifact-edited">
+              <summary>View edited draft <span>Original draft remains preserved</span></summary>
+              <p className="artifact-copy artifact-scroll">{selectedDecision.edited_text}</p>
+            </details>
+          )}
         </article>
 
         <article className="artifact-card artifact-summary">
@@ -136,8 +182,11 @@ export function RunArtifacts({ run, selectedDraft, selectedDecision }: RunArtifa
             <span className={`status-pill ${run.status}`}>{run.status.replaceAll("_", " ")}</span>
           </div>
           <div className="artifact-facts">
+            <div><span>Platform</span><strong>{run.content_platform || "General"}</strong></div>
             <div><span>Provider</span><strong>{run.provider}</strong></div>
             <div><span>Model</span><strong>{run.model}</strong></div>
+            <div><span>Drafts</span><strong>{run.drafts.length}</strong></div>
+            <div><span>Decisions</span><strong>{run.decisions.length}</strong></div>
             <div><span>Started</span><strong>{formatTimestamp(run.started_at)}</strong></div>
             <div><span>Finished</span><strong>{formatTimestamp(run.finished_at)}</strong></div>
           </div>

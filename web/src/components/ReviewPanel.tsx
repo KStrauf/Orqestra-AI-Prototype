@@ -31,6 +31,12 @@ export function ReviewPanel({ run }: ReviewPanelProps) {
           </div>
         </div>
       )}
+      {run.quality_report && (
+        <div className="quality-summary">
+          <div><span className="eyebrow">REVIEW SIGNAL</span><strong>{run.quality_report.overall}/10</strong></div>
+          <p>{run.quality_report.method}</p>
+        </div>
+      )}
       <div className="plan-block">
         <span className="eyebrow">AGENT PLAN</span>
         <p>{run.agent_plan || "No plan recorded."}</p>

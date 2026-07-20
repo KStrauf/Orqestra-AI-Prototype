@@ -10,11 +10,16 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
 from engine import runrecord
+from engine.content import BrandProfile, coach_idea, read_brand_profile, write_brand_profile
 from engine.config import load_settings
 from engine.errors import DecisionError, ProviderError
 from engine.providers import get_provider
 from studio.schemas import (
     CreateRunRequest,
+    BrandProfileRequest,
+    BrandProfileResponse,
+    IdeaCoachRequest,
+    IdeaCoachResponse,
     DecisionRequest,
     DecisionResponse,
     RunListResponse,
@@ -104,6 +109,49 @@ def _edit_diff(original: str, edited: str, draft_id: str) -> str:
     )
 
 
+@app.get("/api/studio/brand-profile", response_model=BrandProfileResponse | None)
+def get_brand_profile() -> BrandProfileResponse | None:
+    """Return the optional durable creator context used by future runs."""
+
+    profile = read_brand_profile(settings.data_dir)
+    return None if profile is None else BrandProfileResponse.model_validate(asdict(profile))
+
+
+@app.put("/api/studio/brand-profile", response_model=BrandProfileResponse)
+def save_brand_profile(request: BrandProfileRequest) -> BrandProfileResponse:
+    """Persist creator context separately from individual run snapshots."""
+
+    profile = BrandProfile(
+        **request.model_dump(exclude={"updated_at"}),
+        updated_at=runrecord.utc_now(),
+    )
+    write_brand_profile(settings.data_dir, profile)
+    return BrandProfileResponse.model_validate(asdict(profile))
+
+
+@app.post("/api/studio/idea-coach", response_model=IdeaCoachResponse)
+def shape_idea(request: IdeaCoachRequest) -> IdeaCoachResponse:
+    """Return concrete content directions before the Specialist drafts."""
+
+    try:
+        profile = (
+            None
+            if request.brand_profile is None
+            else BrandProfile(**request.brand_profile.model_dump())
+        )
+        result = coach_idea(
+            idea=request.idea,
+            platform=request.platform,
+            audience=request.audience,
+            outcome=request.outcome,
+            tone=request.tone,
+            brand_profile=profile,
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    return IdeaCoachResponse.model_validate(asdict(result))
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     """Simple liveness check for the local development server."""
@@ -116,6 +164,7 @@ def create_run(request: CreateRunRequest) -> RunResponse:
     """Run architect → specialist → reviewer and persist the result."""
 
     try:
+        saved_profile = read_brand_profile(settings.data_dir)
         result = run_content_workflow(
             settings.runs_dir,
             ContentWorkflowRequest(
@@ -128,6 +177,11 @@ def create_run(request: CreateRunRequest) -> RunResponse:
                 outcome=request.outcome,
                 tone=request.tone,
                 brief=request.brief,
+                brand_profile=(
+                    saved_profile
+                    if request.brand_profile is None
+                    else BrandProfile(**request.brand_profile.model_dump())
+                ),
             ),
             provider=_provider(),
         )

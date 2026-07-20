@@ -120,9 +120,9 @@ function App() {
     window.location.hash = path;
   }
 
-  function startQuickStart(nextGoal: string, nextMaterial: string) {
-    setGoal(nextGoal);
-    setMaterial(nextMaterial);
+  function startQuickStart() {
+    setGoal("");
+    setMaterial("");
     setAudience("");
     setOutcome("");
     setTone("Clear and practical");

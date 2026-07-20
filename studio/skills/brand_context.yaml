@@ -1,0 +1,10 @@
+id: brand_context
+name: Brand context
+description: Stores optional creator voice, audience, CTA, story, and profile context.
+owner_stage: architect
+input_types:
+  - creator_profile
+  - social_links
+output_type: brand_profile_snapshot
+version: 1.0.0
+requires_human_gate: false

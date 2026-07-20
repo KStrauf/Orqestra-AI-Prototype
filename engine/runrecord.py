@@ -15,10 +15,11 @@ import secrets
 import tempfile
 from typing import Any
 
+from engine.content import BrandProfile, HookCandidate, QualityReport
 from engine.errors import DecisionError, PublicationError
 
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 
 # --- small helpers ---------------------------------------------------------
@@ -154,9 +155,13 @@ class RunRecord:
     outcome: str = ""
     tone: str = "Clear and practical"
     brief: str = ""
+    brand_profile: BrandProfile | None = None
     content_brief: ContentBrief | None = None
     review_report: ReviewReport | None = None
     events: list[RunEvent] = field(default_factory=list)
+    skill_versions: dict[str, str] = field(default_factory=dict)
+    hook_candidates: list[HookCandidate] = field(default_factory=list)
+    quality_report: QualityReport | None = None
 
     finished_at: str | None = None
     duration_ms: int | None = None
@@ -262,7 +267,13 @@ def _load_nested(raw: dict[str, Any]) -> RunRecord:
         raw["content_brief"] = ContentBrief(**raw["content_brief"])
     if raw.get("review_report") is not None:
         raw["review_report"] = ReviewReport(**raw["review_report"])
+    if raw.get("brand_profile") is not None:
+        raw["brand_profile"] = BrandProfile(**raw["brand_profile"])
     raw["events"] = [RunEvent(**item) for item in raw.get("events", [])]
+    raw["skill_versions"] = dict(raw.get("skill_versions", {}))
+    raw["hook_candidates"] = [HookCandidate(**item) for item in raw.get("hook_candidates", [])]
+    if raw.get("quality_report") is not None:
+        raw["quality_report"] = QualityReport(**raw["quality_report"])
     raw["decisions"] = [Decision(**item) for item in raw.get("decisions", [])]
     raw["published"] = [Published(**item) for item in raw.get("published", [])]
     if raw.get("usage") is not None:

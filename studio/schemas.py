@@ -10,6 +10,27 @@ from engine.runrecord import RunRecord
 DecisionKind = Literal["approve", "edit", "reject"]
 
 
+class BrandProfileRequest(BaseModel):
+    """Optional creator context supplied with a workflow request."""
+
+    profile_id: str = "default"
+    name: str = ""
+    audience: str = ""
+    voice_traits: list[str] = Field(default_factory=list)
+    primary_cta: str = ""
+    strong_opinions: list[str] = Field(default_factory=list)
+    story_vault: list[str] = Field(default_factory=list)
+    social_links: dict[str, str] = Field(default_factory=dict)
+    version: int = 1
+    updated_at: str = ""
+
+
+class BrandProfileResponse(BrandProfileRequest):
+    """Creator context returned by the durable profile endpoint."""
+
+    pass
+
+
 class CreateRunRequest(BaseModel):
     """Inputs accepted by the Studio workflow composer."""
 
@@ -22,6 +43,18 @@ class CreateRunRequest(BaseModel):
     outcome: str = ""
     tone: str = "Clear and practical"
     brief: str = ""
+    brand_profile: BrandProfileRequest | None = None
+
+
+class IdeaCoachRequest(BaseModel):
+    """Inputs for shaping an incomplete content idea before drafting."""
+
+    idea: str
+    platform: str = "general"
+    audience: str = ""
+    outcome: str = ""
+    tone: str = ""
+    brand_profile: BrandProfileRequest | None = None
 
 
 class DecisionRequest(BaseModel):
@@ -79,6 +112,44 @@ class ReviewReportResponse(BaseModel):
     recommendations: list[str] = Field(default_factory=list)
 
 
+class HookCandidateResponse(BaseModel):
+    hook_id: str
+    pattern: str
+    text: str
+    rationale: str
+    variant: str = ""
+
+
+class QualityReportResponse(BaseModel):
+    platform: str
+    overall: int
+    scores: dict[str, int] = Field(default_factory=dict)
+    issues: list[str] = Field(default_factory=list)
+    recommendations: list[str] = Field(default_factory=list)
+    method: str
+
+
+class IdeaDirectionResponse(BaseModel):
+    direction_id: str
+    title: str
+    format: str
+    why_it_fits: str
+    opening: str
+    next_step: str
+
+
+class IdeaCoachResponse(BaseModel):
+    recommended_direction_id: str
+    recommendation: str
+    audience: str
+    outcome: str
+    tone: str
+    directions: list[IdeaDirectionResponse] = Field(default_factory=list)
+    sample_post: str
+    starter_brief: str
+    assumptions: list[str] = Field(default_factory=list)
+
+
 class RunEventResponse(BaseModel):
     stage: str
     status: str
@@ -122,9 +193,13 @@ class RunResponse(BaseModel):
     outcome: str = ""
     tone: str = "Clear and practical"
     brief: str = ""
+    brand_profile: BrandProfileRequest | None = None
     content_brief: ContentBriefResponse | None = None
     review_report: ReviewReportResponse | None = None
     events: list[RunEventResponse] = Field(default_factory=list)
+    skill_versions: dict[str, str] = Field(default_factory=dict)
+    hook_candidates: list[HookCandidateResponse] = Field(default_factory=list)
+    quality_report: QualityReportResponse | None = None
     system_prompt: str
     user_prompt: str
     inputs: list[InputResponse] = Field(default_factory=list)
@@ -187,7 +262,8 @@ def run_response(record: RunRecord) -> RunResponse:
 
     from dataclasses import asdict
 
-    return RunResponse.model_validate(asdict(record))
+    payload = asdict(record)
+    return RunResponse.model_validate(payload)
 
 
 def run_summary(record: RunRecord) -> RunSummaryResponse:

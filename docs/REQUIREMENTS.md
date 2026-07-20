@@ -4,8 +4,9 @@
 
 ### Composition
 
-- Accept a non-empty goal and non-empty source material.
+- Accept a non-empty idea or goal with optional source material.
 - Preserve a material name/path label and a requested ordered list of variants.
+- Accept platform, audience, outcome, tone, starter brief, and optional creator context.
 - Reject a run with no variants before provider execution.
 
 ### Workflow
@@ -15,10 +16,14 @@
 - Produce one draft per requested variant.
 - Give the Reviewer all generated drafts plus the goal and material.
 - Stop in an approval-waiting state after review.
+- Make explicit assumptions when a run starts without source material.
+- Produce grounded hook directions before Specialist drafting.
+- Apply conservative platform checks without claiming engagement outcomes.
 
 ### Review and decisions
 
 - Show draft text, variant, length, reviewer notes, and the Architect plan.
+- Show content brief, hook directions, quality checks, and why a draft is being recommended.
 - Allow one decision per draft: approve, edit, or reject.
 - Require non-empty edited text for an edit.
 - Require a reason for a rejection.
@@ -29,6 +34,7 @@
 
 - Persist every completed run durably and atomically.
 - Retain input fingerprints, prompts, workflow/template identity, provider/model, usage, drafts, review, decisions, and status.
+- Retain creator-profile snapshot, skill versions, hook candidates, and quality report.
 - Make records readable after process restart.
 - Keep existing records readable when optional fields are absent.
 
@@ -37,7 +43,13 @@
 - Support deterministic mock inference for tests and offline demos.
 - Support local Ollama inference with Qwen configuration through environment variables.
 - Keep provider selection explicit and isolated from UI and orchestration code.
-- Add OpenAI behind the same contract only after the Qwen path is stable.
+- Keep the OpenAI adapter behind the same contract; live OpenAI use requires explicit credentials and is not required for the MVP.
+
+### Creator context
+
+- Support durable audience, voice traits, primary CTA, point of view, story, and social-link context.
+- Snapshot the context into each run so later profile edits do not change historical traceability.
+- Never store social credentials in the creator profile.
 
 ## Non-functional requirements
 
@@ -53,6 +65,8 @@
 - A fresh local setup can start the backend and frontend using documented commands.
 - A user can complete the happy-path demo with mock inference and see the full pipeline.
 - At least two variants are visible and selectable.
+- A user can start from an idea without first writing a finished brief.
+- Hook directions and quality checks are visible without implying automatic approval.
 - A decision persists to the corresponding run record.
 - Qwen/Ollama configuration is documented and covered by provider tests.
 - Existing API routes and regression tests remain compatible.

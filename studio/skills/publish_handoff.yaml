@@ -1,0 +1,10 @@
+id: publish_handoff
+name: Publish handoff
+description: Packages human-approved content for copy, export, or a future publishing integration.
+owner_stage: human
+input_types:
+  - approved_draft
+  - decision_record
+output_type: export_package
+version: 1.0.0
+requires_human_gate: true

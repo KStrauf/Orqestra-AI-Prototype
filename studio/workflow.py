@@ -11,6 +11,11 @@ from pathlib import Path
 import time
 from typing import Mapping
 
+from engine.content import (
+    BrandProfile,
+    build_hook_candidates,
+    grade_drafts,
+)
 from engine import runrecord
 from engine.providers import MockProvider, ProviderReply, TextProvider, resolve_model
 from studio.manifest import (
@@ -23,6 +28,7 @@ from studio.plan import (
     compile_workflow,
     content_workflow_definition,
 )
+from studio.skills import load_content_skills, skill_versions
 
 
 @dataclass(frozen=True)
@@ -38,6 +44,7 @@ class ContentWorkflowRequest:
     outcome: str = ""
     tone: str = "Clear and practical"
     brief: str = ""
+    brand_profile: BrandProfile | None = None
 
 
 @dataclass(frozen=True)
@@ -78,6 +85,8 @@ def run_content_workflow(
         raise ValueError("workflow requires at least one draft variant")
 
     provider = provider or MockProvider()
+    content_skills = load_content_skills()
+    content_skill_versions = skill_versions(content_skills)
     agents = dict(manifests or load_builtin_agents())
     compiled = compile_workflow(
         workflow or content_workflow_definition(),
@@ -102,7 +111,19 @@ def run_content_workflow(
         f"Tone: {tone}\n"
         f"Starter brief: {brief}"
     )
+    if request.brand_profile:
+        content_context += (
+            f"\nCreator voice traits: {', '.join(request.brand_profile.voice_traits) or 'not specified'}"
+            f"\nPrimary CTA: {request.brand_profile.primary_cta or 'not specified'}"
+        )
 
+    hook_candidates = build_hook_candidates(
+        request.goal,
+        request.platform,
+        request.variants,
+        audience,
+        request.brand_profile,
+    )
     architect = compiled.agent_for(steps["architect"])
     # Each call resolves through the provider boundary. This lets a provider
     # replace provider-neutral manifest models (for example gpt-5.6) with its
@@ -113,6 +134,7 @@ def run_content_workflow(
         user_prompt=(
             f"Goal: {request.goal}\n"
             f"{content_context}\n"
+            f"Content capabilities: {', '.join(content_skills)}\n"
             "Available templates: content_workflow\n"
             "Return a small agent plan."
         ),
@@ -133,13 +155,15 @@ def run_content_workflow(
     drafts: list[runrecord.Draft] = []
     replies = [plan_reply]
     for index, variant in enumerate(request.variants, start=1):
+        hook_candidate = hook_candidates[index - 1] if index <= len(hook_candidates) else None
         draft_reply = provider.complete(
             system_prompt=_prompt(specialist, f"Agent plan: {plan_reply.text}"),
             user_prompt=(
                 f"Goal: {request.goal}\n"
                 f"{content_context}\n"
                 f"Material: {material_context}\n"
-                f"Variant: {variant}"
+                f"Variant: {variant}\n"
+                f"Hook direction: {hook_candidate.text if hook_candidate else 'Choose a grounded opening.'}"
             ),
             model=specialist_model,
             temperature=specialist.temperature,
@@ -153,7 +177,8 @@ def run_content_workflow(
                 text=draft_reply.text,
                 chars=len(draft_reply.text),
                 angle=ANGLE_LABELS.get(variant, variant.replace("_", " ").title()),
-                hook=draft_reply.text.splitlines()[0][:160] if draft_reply.text.strip() else "",
+                hook=(hook_candidate.text if hook_candidate else draft_reply.text.splitlines()[0][:160])
+                if draft_reply.text.strip() else "",
                 cta="Invite the audience to respond or take the next useful step.",
                 platform_fit=f"Drafted for {request.platform}.",
             )
@@ -163,7 +188,7 @@ def run_content_workflow(
             stage="specialist",
             status="completed",
             at=runrecord.utc_now(),
-            summary=f"Created {len(drafts)} distinct content angles for {request.platform}.",
+            summary=f"Created {len(drafts)} distinct content angles and grounded hook directions for {request.platform}.",
         )
     )
 
@@ -200,6 +225,12 @@ def run_content_workflow(
             "Compare the hooks and choose the angle that best fits the audience.",
             "Edit the selected draft for your own voice before approval.",
         ],
+    )
+    quality_report = grade_drafts(
+        drafts,
+        request.platform,
+        bool(request.material.strip()),
+        request.brand_profile,
     )
     events.extend(
         [
@@ -261,9 +292,13 @@ def run_content_workflow(
         outcome=outcome,
         tone=tone,
         brief=brief,
+        brand_profile=request.brand_profile,
         content_brief=content_brief,
         review_report=review_report,
         events=events,
+        skill_versions=content_skill_versions,
+        hook_candidates=hook_candidates,
+        quality_report=quality_report,
         inputs=[
             runrecord.Input(
                 source="workflow",

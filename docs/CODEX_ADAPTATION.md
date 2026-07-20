@@ -16,7 +16,7 @@ This repository is an existing Studio MVP. Codex should evolve it in place.
 2. Studio backend contract: schemas, run lifecycle, list/history, and normalized errors.
 3. Provider abstraction: Qwen/Ollama first, OpenAI-ready second, with trace metadata.
 4. Frontend workspace: components, API client, history, pipeline, decisions, and trace views.
-5. Transparency and demo hardening: artifacts, fixtures, smoke checks, screenshots, and freeze prep.
+5. Content intelligence and demo hardening: creator context, hooks, quality checks, artifacts, fixtures, smoke checks, screenshots, and freeze prep.
 
 After each phase, stop and report changed files, rationale, commands, test results, remaining risks, and the recommended next phase.
 
@@ -30,6 +30,8 @@ After each phase, stop and report changed files, rationale, commands, test resul
 - Add regression coverage for every new contract or invariant.
 - Make failures explicit and user-visible without leaking secrets.
 - Do not expand the MVP into publishing, authentication, distributed execution, or unrelated business workflows.
+- Adapt external content skills selectively into provider-neutral contracts. Do not copy their filesystem assumptions, vendor integrations, automatic scheduling, virality guarantees, or hidden rewrite loops.
+- Keep content capabilities inside the existing Architect → Specialist → Reviewer → Human boundary.
 
 ## Definition of done for the hackathon
 

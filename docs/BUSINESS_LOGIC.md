@@ -11,7 +11,9 @@ The current workflow persists the completed generation in `awaiting_approval`. R
 
 ## Invariants
 
-- A run cannot execute with an empty goal or material.
+- A run cannot execute with an empty goal. Source material is optional when the user has only an idea.
+- An idea-only run must label assumptions and keep factual claims subject to human verification.
+- Platform, audience, outcome, tone, and optional creator context shape the brief without becoming hidden provider state.
 - A run must request at least one variant.
 - Each draft has a stable ID scoped to its run.
 - A draft can receive at most one decision.
@@ -21,13 +23,16 @@ The current workflow persists the completed generation in `awaiting_approval`. R
 - No publication can be recorded without a prior approve or edit decision.
 - The original draft remains available after an edit; the edited text is a separate decision field.
 - The run record retains enough metadata to explain which provider, model, prompts, inputs, and manifests produced the result.
+- The run record retains the creator-profile snapshot, skill versions, hook candidates, and quality report used during review.
 
 ## Grounding and review rules
 
-- The Specialist receives only the supplied material, goal, plan, and permitted instructions/tools.
-- The Reviewer evaluates against the goal, supplied material, and review constraints.
+- The Specialist receives only the supplied material or idea context, goal, plan, creator context, and permitted instructions/tools.
+- The Reviewer evaluates against the goal, supplied material or idea assumptions, platform, creator context, and review constraints.
 - Reviewer output is advice, not an implicit rewrite or approval.
 - The human decides whether a draft is acceptable, needs editing, or should be rejected.
+- Hook candidates are alternatives for human comparison, not promises of virality.
+- Quality scores are deterministic review signals based on supplied context and platform checks, not automatic approval thresholds.
 
 ## Provider rules
 

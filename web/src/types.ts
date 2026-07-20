@@ -37,6 +37,66 @@ export interface ReviewReport {
   recommendations: string[];
 }
 
+export interface HookCandidate {
+  hook_id: string;
+  pattern: string;
+  text: string;
+  rationale: string;
+  variant: string;
+}
+
+export interface QualityReport {
+  platform: string;
+  overall: number;
+  scores: Record<string, number>;
+  issues: string[];
+  recommendations: string[];
+  method: string;
+}
+
+export interface IdeaDirection {
+  direction_id: string;
+  title: string;
+  format: string;
+  why_it_fits: string;
+  opening: string;
+  next_step: string;
+}
+
+export interface IdeaCoachResult {
+  recommended_direction_id: string;
+  recommendation: string;
+  audience: string;
+  outcome: string;
+  tone: string;
+  directions: IdeaDirection[];
+  sample_post: string;
+  starter_brief: string;
+  assumptions: string[];
+}
+
+export interface IdeaCoachInput {
+  idea: string;
+  platform: string;
+  audience?: string;
+  outcome?: string;
+  tone?: string;
+  brand_profile?: BrandProfile;
+}
+
+export interface BrandProfile {
+  profile_id: string;
+  name: string;
+  audience: string;
+  voice_traits: string[];
+  primary_cta: string;
+  strong_opinions: string[];
+  story_vault: string[];
+  social_links: Record<string, string>;
+  version: number;
+  updated_at: string;
+}
+
 export interface RunEvent {
   stage: string;
   status: string;
@@ -86,6 +146,10 @@ export interface StudioRun {
   content_brief?: ContentBrief | null;
   review_report?: ReviewReport | null;
   events?: RunEvent[];
+  brand_profile?: BrandProfile | null;
+  skill_versions?: Record<string, string>;
+  hook_candidates?: HookCandidate[];
+  quality_report?: QualityReport | null;
   inputs: RunInput[];
   status: RunStatus;
   agent_plan: string | null;
@@ -126,6 +190,7 @@ export interface CreateWorkflowInput {
   outcome?: string;
   tone?: string;
   brief?: string;
+  brand_profile?: BrandProfile;
 }
 
 export interface DecisionInput {

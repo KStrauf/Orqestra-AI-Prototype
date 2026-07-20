@@ -1,0 +1,11 @@
+id: hook_strategist
+name: Hook strategist
+description: Produces grounded opening options and explains the editorial choice behind each one.
+owner_stage: specialist
+input_types:
+  - content_brief
+  - brand_profile_snapshot
+  - source_material
+output_type: hook_candidates
+version: 1.0.0
+requires_human_gate: false

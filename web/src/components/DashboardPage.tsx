@@ -2,7 +2,7 @@ import type { RunSummary } from "../types";
 
 interface DashboardPageProps {
   runs: RunSummary[];
-  onStart: (goal: string, material: string) => void;
+  onStart: () => void;
   onOpen: (run: RunSummary) => void;
 }
 
@@ -10,20 +10,14 @@ const quickStarts = [
   {
     title: "Launch post",
     detail: "Turn build notes into an approval-ready announcement.",
-    goal: "Write an approval-ready launch post",
-    material: "We shipped a clearer multi-agent workflow with visible review and a human decision gate.",
   },
   {
     title: "Product update",
     detail: "Explain a new capability with useful alternative angles.",
-    goal: "Write a concise product update",
-    material: "Orqestra Studio turns a goal and source material into multiple drafts, then pauses for human review.",
   },
   {
     title: "Thought leadership",
     detail: "Shape an idea into a grounded point of view.",
-    goal: "Draft a thought leadership post",
-    material: "Reviewable agent teams make planning, drafting, and critique visible before publication.",
   },
 ];
 
@@ -55,13 +49,13 @@ export function DashboardPage({ runs, onStart, onOpen }: DashboardPageProps) {
             <button
               className="quick-start-card"
               key={item.title}
-              onClick={() => onStart(item.goal, item.material)}
+              onClick={onStart}
               type="button"
             >
               <span className="quick-start-icon">✦</span>
               <strong>{item.title}</strong>
               <p>{item.detail}</p>
-              <span className="quick-start-action">Use starting point →</span>
+              <span className="quick-start-action">Start with a blank brief →</span>
             </button>
           ))}
         </div>

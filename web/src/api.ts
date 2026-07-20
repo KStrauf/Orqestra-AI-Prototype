@@ -1,7 +1,10 @@
 import type {
   CreateWorkflowInput,
+  BrandProfile,
   Decision,
   DecisionInput,
+  IdeaCoachInput,
+  IdeaCoachResult,
   RunSummary,
   StudioRun,
 } from "./types";
@@ -104,6 +107,86 @@ export async function getRun(runId: string): Promise<StudioRun> {
   return request<StudioRun>(`/api/studio/runs/${runId}`);
 }
 
+export async function getBrandProfile(): Promise<BrandProfile | null> {
+  if (demoMode) return null;
+  return request<BrandProfile | null>("/api/studio/brand-profile");
+}
+
+export async function saveBrandProfile(profile: BrandProfile): Promise<BrandProfile> {
+  if (demoMode) return profile;
+  return request<BrandProfile>("/api/studio/brand-profile", {
+    method: "PUT",
+    body: JSON.stringify(profile),
+  });
+}
+
+export async function coachIdea(input: IdeaCoachInput): Promise<IdeaCoachResult> {
+  if (!demoMode) {
+    return request<IdeaCoachResult>("/api/studio/idea-coach", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+  }
+  const idea = input.idea.trim().replace(/\.+$/, "");
+  const audience = input.audience?.trim() || "people who will find the idea useful";
+  const outcome = input.outcome?.trim() || "Teach the audience something useful";
+  const tone = input.tone?.trim() || "Clear and practical";
+  const directions = [
+    {
+      direction_id: "practical-breakdown",
+      title: `Make ${idea} practical`,
+      format: "Step-by-step post",
+      why_it_fits: `Show ${audience} what to do with the idea instead of only naming it.`,
+      opening: `Start with the one choice that makes ${idea} useful.`,
+      next_step: "Give the reader one action they can try today.",
+    },
+    {
+      direction_id: "beginner-guide",
+      title: `Explain ${idea} for a beginner`,
+      format: "Beginner-friendly explainer",
+      why_it_fits: `Translate the idea into plain language for ${audience}.`,
+      opening: `If ${idea.toLowerCase()} feels harder than it should, begin with this simple distinction.`,
+      next_step: "Define the first step and one common mistake to avoid.",
+    },
+    {
+      direction_id: "point-of-view",
+      title: `Take a point of view on ${idea}`,
+      format: "Opinion-led post",
+      why_it_fits: "Give the idea a clear position so the audience understands why it matters.",
+      opening: `The useful question is not whether ${idea.toLowerCase()} matters. It is how to use it well.`,
+      next_step: "Support the point of view with one example and invite a specific response.",
+    },
+  ];
+  const recommended = directions[0];
+  const samplePost = `${recommended.opening}\n\nIf you are exploring ${idea.toLowerCase()}, do not stop at the label. Explain what it helps someone do, when it is useful, and where to begin.\n\nStart with one concrete example for ${audience}. Then give one next step. ${recommended.next_step}`;
+  const starterBrief = [
+    `Audience: ${audience}`,
+    `Outcome: ${outcome}`,
+    `Voice: ${tone}`,
+    `Core idea: ${idea}`,
+    `Recommended direction: ${recommended.title}`,
+    `Format: ${recommended.format}`,
+    `Opening: ${recommended.opening}`,
+    `Next step: ${recommended.next_step}`,
+    "",
+    "Assumption: Replace general statements with supplied facts, examples, or personal experience before approval.",
+  ].join("\n");
+  return {
+    recommended_direction_id: recommended.direction_id,
+    recommendation: `Start with a practical breakdown for ${audience}. It gives the idea a clear promise and a useful next step for ${input.platform}.`,
+    audience,
+    outcome,
+    tone,
+    directions,
+    sample_post: samplePost,
+    starter_brief: starterBrief,
+    assumptions: [
+      "The idea is the source of truth until the user adds supporting material.",
+      "Specific claims, names, and examples should be supplied or verified before approval.",
+    ],
+  };
+}
+
 function demoRun(input: CreateWorkflowInput): StudioRun {
   const runId = `demo-${Date.now()}`;
   const variantDescriptions: Record<string, string> = {
@@ -147,6 +230,32 @@ function demoRun(input: CreateWorkflowInput): StudioRun {
     drafts,
     decisions: [],
     published: [],
+    hook_candidates: input.variants.slice(0, 3).map((variant, index) => ({
+      hook_id: `hook-${index + 1}`,
+      pattern: index === 0 ? "clear claim" : index === 1 ? "audience question" : "practical lesson",
+      text: index === 0
+        ? `A clear way to approach ${input.goal}: start with the audience's next useful step.`
+        : index === 1
+          ? `What would ${input.platform} readers need to understand before acting on ${input.goal}?`
+          : `The useful lesson behind ${input.goal} is easier to apply when the first step is concrete.`,
+      rationale: "A grounded opening direction for human comparison.",
+      variant,
+    })),
+    quality_report: {
+      platform: input.platform,
+      overall: input.material.trim() ? 7 : 5,
+      scores: { grounding: input.material.trim() ? 8 : 5, platform_fit: 8, voice_fit: 5, actionability: 6 },
+      issues: input.material.trim() ? ["No saved voice profile was supplied."] : ["The run started from an idea; verify factual claims.", "No saved voice profile was supplied."],
+      recommendations: ["Compare the hook, audience fit, and next step before deciding."],
+      method: "Demo checks for review orientation; not an engagement prediction.",
+    },
+    skill_versions: {
+      brand_context: "1.0.0",
+      idea_coach: "1.0.0",
+      hook_strategist: "1.0.0",
+      post_writer: "1.0.0",
+      post_grader: "1.0.0",
+    },
     usage: {
       input_tokens: 0,
       output_tokens: 0,

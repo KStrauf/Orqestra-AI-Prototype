@@ -1,0 +1,12 @@
+id: idea_coach
+name: Idea coach
+description: Turns an incomplete idea into a clear content brief and reviewable directions.
+owner_stage: architect
+input_types:
+  - user_idea
+  - audience
+  - platform
+  - desired_outcome
+output_type: content_brief
+version: 1.0.0
+requires_human_gate: false

@@ -1,0 +1,12 @@
+id: post_writer
+name: Platform writer
+description: Creates distinct platform-aware draft variants from an approved creative direction.
+owner_stage: specialist
+input_types:
+  - content_brief
+  - hook_candidates
+  - source_material
+  - brand_profile_snapshot
+output_type: draft_variants
+version: 1.0.0
+requires_human_gate: false
