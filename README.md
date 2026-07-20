@@ -12,7 +12,7 @@ The hackathon MVP is deliberately small: it demonstrates useful agent handoffs, 
 - Versioned content capabilities for idea coaching, grounded hooks, platform writing, and editorial checks.
 - Durable creator profile context for audience, voice traits, CTA, point of view, stories, and social links.
 - Reviewer notes and the Architect's plan shown alongside the drafts.
-- Hook directions and transparent quality checks shown as review artifacts, not engagement guarantees.
+- Hook directions and an explainable Content Benchmark shown as review evidence, not engagement guarantees.
 - Approve, edit, and reject decisions with durable JSON persistence.
 - Deterministic mock inference for tests and a local Ollama adapter for Qwen-first development.
 - Provider and model metadata recorded on each run.
@@ -94,6 +94,10 @@ Run records are the source of truth and are written atomically under `data/runs/
 ## Product source of truth
 
 Read the documents in `docs/` for the current product and implementation contract. `PROJECT.md` is a session handoff and implementation snapshot; it is useful context but is not the permanent product specification.
+
+The product quality gate is [`docs/UX_BENCHMARK.md`](docs/UX_BENCHMARK.md), and
+the accumulated team findings are preserved in
+[`docs/TEAM_LESSONS.md`](docs/TEAM_LESSONS.md).
 
 ## Safety boundary
 

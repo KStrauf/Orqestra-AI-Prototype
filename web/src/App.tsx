@@ -281,7 +281,7 @@ function App() {
       page = <HistoryPage runs={history} onOpen={handleHistorySelect} />;
       break;
     case "trace":
-      page = <TracePage run={route.id ? run : run} onGoHistory={() => go("#/history")} />;
+      page = <TracePage run={route.id ? run : run} selectedDraftId={selectedDraftId} onGoHistory={() => go("#/history")} />;
       break;
     case "settings":
       page = <SettingsPage environmentLabel={currentEnvironment} provider={run?.provider ?? (isDemoMode ? "demo" : "backend configured")} model={run?.model ?? (isDemoMode ? "local preview" : "backend configured")} />;

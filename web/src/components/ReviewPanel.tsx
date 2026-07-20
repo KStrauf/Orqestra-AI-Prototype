@@ -32,9 +32,14 @@ export function ReviewPanel({ run }: ReviewPanelProps) {
         </div>
       )}
       {run.quality_report && (
-        <div className="quality-summary">
-          <div><span className="eyebrow">REVIEW SIGNAL</span><strong>{run.quality_report.overall}/10</strong></div>
-          <p>{run.quality_report.method}</p>
+        <div className="quality-summary" aria-label="Content benchmark">
+          <div><span className="eyebrow">CONTENT BENCHMARK</span><strong>{run.quality_report.overall}/10</strong></div>
+          <p>Editorial checks for this draft set. This is a review aid, not an engagement prediction.</p>
+          <div className="benchmark-grid">
+            {Object.entries(run.quality_report.scores).map(([label, score]) => (
+              <div key={label}><span>{label.replaceAll("_", " ")}</span><strong>{score}/10</strong></div>
+            ))}
+          </div>
         </div>
       )}
       <div className="plan-block">

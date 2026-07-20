@@ -19,7 +19,7 @@ The primary demo is a single happy-path run that takes roughly three minutes and
 4. Run the workflow and call out the visible `Architect → Specialist → Reviewer` pipeline.
 5. Open the content brief and hook directions to show how the idea becomes usable directions.
 6. Compare the direct, reflective, and educational Specialist variants.
-7. Read the Reviewer notes and quality checks, emphasizing that they surface risks rather than auto-approve.
+7. Read the Reviewer notes and Content Benchmark, showing grounding, platform fit, voice fit, and actionability. Emphasize that the benchmark surfaces review priorities rather than auto-approving or predicting engagement.
 8. Edit the preferred draft, record the decision, and point out that the run remains locally persisted.
 9. Reopen or show the run record and identify the provider, model, skill versions, creator context snapshot, timestamps, decision, and diff.
 
@@ -35,6 +35,7 @@ If Ollama or the backend is unavailable, use deterministic demo mode. If a live 
 - The human gate is explicit and durable.
 - The model provider can change without changing the Studio experience.
 - The content capability layer helps a user move from an idea to a reviewable post.
+- The benchmark makes quality and remaining human work visible instead of hiding them behind a single generated answer.
 
 ## Claims to avoid
 

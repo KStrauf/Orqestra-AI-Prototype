@@ -1,62 +1,142 @@
-# Orqestra AI — Session Handoff
+# Orqestra Studio — Current Handoff
 
 Updated: 2026-07-19
 
-## Completed
+## Product north star
 
-- Built and validated the Vite + React + TypeScript frontend in `web/`.
-- Added the workflow goal/material composer.
-- Added the Architect → Specialist → Reviewer pipeline UI.
-- Added draft selection, review display, and approve/edit/reject controls.
-- Added the typed frontend API client with demo fallback.
-- Added responsive desktop/mobile styling.
-- Existing backend test suite was reported at 28 passing tests.
-- Added the FastAPI HTTP layer in `studio/api.py` for:
-  - `GET /health`
-  - `POST /api/studio/runs`
-  - `GET /api/studio/runs/{run_id}`
-  - `POST /api/studio/runs/{run_id}/decisions`
-- Added FastAPI and Uvicorn dependencies to `requirements.txt` and `pyproject.toml`.
-- Added `scripts/start-backend.sh`, which uses the project `.venv`, installs missing backend dependencies, and starts Uvicorn on port 8000.
-- Corrected invalid wrapped comment lines in `requirements.txt` that prevented pip from parsing it.
-- Updated `README.md` with backend and frontend startup instructions.
+Orqestra Studio is an AI-powered, UX-first content and benchmarking platform.
+A creator can bring one sentence, source material, or both. The Content
+Architect shapes the idea, the Specialist produces distinct platform-aware
+directions, the Reviewer benchmarks the work, and the human decides what is
+approved, edited, or rejected.
 
-## Current status
+This is not a custom-agent builder, workflow editor, social scheduler, or
+automatic publishing product. The product must feel useful to a creator before
+it feels impressive to an engineer.
 
-- Frontend build had passed before this session.
-- FastAPI/Uvicorn dependencies installed successfully in the local `.venv`.
-- The backend imports and Uvicorn application startup complete successfully.
-- Live localhost verification was not completed because the managed execution sandbox blocks binding to `127.0.0.1`; the escalated verification run was interrupted.
-- The backend launcher does not use auto-reload by default. Set `ORQ_API_RELOAD=true` if reload is desired in a normal local terminal.
-- The frontend remains in demo mode unless `web/.env.local` is created with `VITE_DEMO_MODE=false` and `VITE_API_URL=http://localhost:8000`.
+The durable product and engineering contract is in `docs/`. This file is the
+active implementation snapshot for the next session.
 
-## Next session
+## Completed phases
 
-1. Start the backend:
+### Phase 0 — Source of truth
 
-   ```bash
-   cd /Users/kimberlystrauf/Desktop/orqestra-ai-prototype
-   ./scripts/start-backend.sh
-   ```
+- Replaced the stale finance-workflow README and filled the product, scope,
+  architecture, requirements, agent, business-logic, demo, and Codex guidance.
 
-2. In a second terminal, connect and start the frontend:
+### Phase 1 — Studio backend contract
 
-   ```bash
-   cd /Users/kimberlystrauf/Desktop/orqestra-ai-prototype/web
-   npm run dev
-   ```
+- Formalized run, decision, detail, summary, list, and normalized error shapes.
+- Preserved existing Studio endpoints and made durable persistence remain
+  centered on `engine/runrecord.py`.
 
-3. Verify `http://localhost:8000/health` returns `{"status":"ok"}`.
+### Phase 2 — Provider abstraction
 
-4. Submit a workflow from the UI and verify run creation plus approve/edit/reject decisions persist in `data/runs/`.
+- Added one text-provider contract.
+- Kept deterministic mock mode for tests and demos.
+- Added Qwen-first local Ollama configuration and an OpenAI-ready adapter.
+- Persisted provider, model, usage, and cost-estimate metadata.
 
-5. Re-run the backend tests and frontend build after the API integration check.
+### Phase 3 — Review workspace
+
+- Built the Vite + React + TypeScript shell, responsive layout, tokens, typed
+  API client, composer, pipeline, draft comparison, decision controls, history,
+  settings, and trace surfaces.
+
+### Phase 4 — Transparency and content intelligence
+
+- Added creator context, Idea Coach, grounded hook directions, platform checks,
+  quality benchmarking, artifact evidence, decision history, and trace views.
+- Reframed the runtime Architect as a Content Architect so the product language
+  matches the creator-facing mission.
+- Improved deterministic demo drafts so they transform an idea into a hook,
+  useful body, audience framing, and next action instead of echoing the request.
+
+## Validation status
+
+The current automated checks are green:
+
+- Python regression suite: **52 tests passed**.
+- Frontend TypeScript/Vite build: **passed** from `web/`.
+- `git diff --check`: **passed**.
+- Agent manifests load with the four runtime roles: Architect, Orchestrator,
+  Specialist, and Reviewer.
+- API smoke coverage has exercised run creation, durable retrieval, approve,
+  edit, reject, and history listing.
+
+The latest UX changes still need one manual browser pass after refresh. That is
+the only open release gate before recording; no new feature work should begin
+until that pass is complete.
+
+## Current quality bar
+
+Use `docs/UX_BENCHMARK.md` as the acceptance contract. In particular:
+
+1. A first-time creator can start with only an idea.
+2. The Specialist materially transforms the input and produces distinct angles.
+3. The benchmark explains grounding, platform fit, voice fit, and actionability.
+4. Trace shows Architect → Specialist → Reviewer → Human without becoming a
+   long debug report.
+5. Creator context is useful, optional, and separate from publishing credentials.
+6. Nothing publishes automatically.
+
+## Next-session plan
+
+### Gate A — Manual browser validation
+
+With backend and frontend running, hard-refresh the browser and verify:
+
+- Dashboard quick starts and empty/recent states.
+- Idea-only New Run flow, placeholders, Idea Coach, platform selection, and
+  create-drafts action.
+- Run Workspace: three distinct drafts, benchmark in context, selected draft,
+  reviewer notes, and approve/edit/reject persistence.
+- Trace: four-stage timeline, selected draft, workflow evidence, benchmark, and
+  spaced Run Facts.
+- Settings: creator context, collapsed social channels, save feedback, and no
+  accidental credential language.
+
+### Gate B — Demo freeze
+
+- Select one polished happy-path run and one seeded backup run.
+- Confirm mock mode recording path and Qwen/Ollama fallback instructions.
+- Capture screenshots only after the browser pass.
+- Freeze scope and use the smoke checklist in `docs/DEMO_FLOW.md`.
+
+### Deferred after submission
+
+- Live OpenAI validation and cost accounting.
+- Repurposing across multiple platforms.
+- Publishing, scheduling, authentication, hosted persistence, and deeper
+  per-agent telemetry.
+
+## Startup commands
+
+Backend:
+
+```bash
+cd /Users/kimberlystrauf/Desktop/orqestra-ai-prototype
+./scripts/start-backend.sh
+```
+
+Frontend:
+
+```bash
+cd /Users/kimberlystrauf/Desktop/orqestra-ai-prototype/web
+npm run dev
+```
+
+Use `web/.env.local` with `VITE_DEMO_MODE=false` and
+`VITE_API_URL=http://localhost:8000` to connect the frontend to the backend.
 
 ## Important files
 
-- `studio/api.py` — FastAPI application and Studio routes.
-- `scripts/start-backend.sh` — backend startup script.
-- `studio/workflow.py` — existing Architect/Specialist/Reviewer orchestration.
-- `engine/runrecord.py` — durable JSON run and decision persistence.
-- `web/src/api.ts` — frontend API contract and demo fallback.
-- `web/src/types.ts` — shared frontend response/request shapes.
+- `studio/api.py` — FastAPI routes and backend contract.
+- `studio/workflow.py` — Content Architect → Specialist → Reviewer orchestration.
+- `studio/agents/` — runtime agent manifests.
+- `engine/content.py` — creator context, hooks, platform guidance, and benchmark checks.
+- `engine/providers/` — mock, Qwen/Ollama, and OpenAI-ready text providers.
+- `engine/runrecord.py` — authoritative durable JSON runs and decisions.
+- `web/src/components/` — creator workspace, review, trace, history, and settings UI.
+- `docs/UX_BENCHMARK.md` — product quality gate.
+- `docs/TEAM_LESSONS.md` — durable synthesis of previous team findings.

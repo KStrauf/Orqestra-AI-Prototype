@@ -51,6 +51,17 @@ class ContentCapabilityTests(unittest.TestCase):
         self.assertLess(report.scores["platform_fit"], 8)
         self.assertTrue(any("idea" in issue for issue in report.issues))
 
+    def test_grader_uses_draft_signals_for_actionability_and_distinctness(self) -> None:
+        drafts = [
+            runrecord.Draft("draft#1", "direct", "Start here. Try the first step.", 31),
+            runrecord.Draft("draft#2", "reflective", "Ask what would make the next step easier.", 42),
+        ]
+
+        report = grade_drafts(drafts, "LinkedIn", material_supplied=True)
+
+        self.assertGreaterEqual(report.scores["actionability"], 7)
+        self.assertFalse(any("same opening" in issue for issue in report.issues))
+
     def test_idea_coach_returns_directions_sample_and_editable_brief(self) -> None:
         result = coach_idea("5 Codex Skills", "LinkedIn")
 

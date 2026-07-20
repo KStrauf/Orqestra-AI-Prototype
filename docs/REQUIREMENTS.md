@@ -22,11 +22,14 @@
   showing multiple directions, and providing a sample starter post before
   they create drafts.
 - Apply conservative platform checks without claiming engagement outcomes.
+- Produce a structured, explainable content benchmark for grounding, platform fit,
+  voice fit, actionability, and variant distinctness.
 
 ### Review and decisions
 
 - Show draft text, variant, length, reviewer notes, and the Architect plan.
 - Show content brief, hook directions, quality checks, and why a draft is being recommended.
+- Show benchmark dimensions with their recommendations near the human review gate.
 - Allow one decision per draft: approve, edit, or reject.
 - Require non-empty edited text for an edit.
 - Require a reason for a rejection.
@@ -70,6 +73,8 @@
 - At least two variants are visible and selectable.
 - A user can start from an idea without first writing a finished brief.
 - Hook directions and quality checks are visible without implying automatic approval.
+- The benchmark helps a first-time creator understand what to improve without
+  pretending to predict reach or engagement.
 - A decision persists to the corresponding run record.
 - Qwen/Ollama configuration is documented and covered by provider tests.
 - Existing API routes and regression tests remain compatible.

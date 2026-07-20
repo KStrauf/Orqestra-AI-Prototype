@@ -54,7 +54,7 @@ class ProviderTests(unittest.TestCase):
             temperature=0.7,
         )
 
-        self.assertIn("Educational draft", reply.text)
+        self.assertIn("How to approach join a beer league hockey league", reply.text)
         self.assertIn("1. Start with the problem", reply.text)
         self.assertIn("within 20 miles of Austin, TX", reply.text)
         self.assertNotEqual(reply.text, "Educational draft for How do I join a beer league hockey league?: Help people take the first step within 20 miles of Austin, TX")

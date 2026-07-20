@@ -33,6 +33,9 @@ The current workflow persists the completed generation in `awaiting_approval`. R
 - The human decides whether a draft is acceptable, needs editing, or should be rejected.
 - Hook candidates are alternatives for human comparison, not promises of virality.
 - Quality scores are deterministic review signals based on supplied context and platform checks, not automatic approval thresholds.
+- Benchmark issues and recommendations are advisory evidence for the human
+  reviewer. A high score never records approval, and a low score never blocks
+  a human edit or rejection decision.
 
 ## Provider rules
 

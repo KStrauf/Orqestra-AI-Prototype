@@ -16,7 +16,21 @@ This repository is an existing Studio MVP. Codex should evolve it in place.
 2. Studio backend contract: schemas, run lifecycle, list/history, and normalized errors.
 3. Provider abstraction: Qwen/Ollama first, OpenAI-ready second, with trace metadata.
 4. Frontend workspace: components, API client, history, pipeline, decisions, and trace views.
-5. Content intelligence and demo hardening: creator context, hooks, quality checks, artifacts, fixtures, smoke checks, screenshots, and freeze prep.
+5. Content intelligence and demo hardening: creator context, hooks, quality benchmarks, artifacts, fixtures, smoke checks, screenshots, and freeze prep.
+
+### Plan status — 2026-07-19
+
+- **Phase 0:** complete.
+- **Phase 1:** complete.
+- **Phase 2:** complete.
+- **Phase 3:** complete.
+- **Phase 4:** complete.
+- **Phase 5:** automated validation complete; final manual browser pass,
+  screenshots, and branch freeze remain.
+
+The next session is a release validation session, not another redesign cycle.
+Any issue found must be classified as a submission blocker against
+`docs/UX_BENCHMARK.md` before code is changed.
 
 After each phase, stop and report changed files, rationale, commands, test results, remaining risks, and the recommended next phase.
 
@@ -32,7 +46,16 @@ After each phase, stop and report changed files, rationale, commands, test resul
 - Do not expand the MVP into publishing, authentication, distributed execution, or unrelated business workflows.
 - Adapt external content skills selectively into provider-neutral contracts. Do not copy their filesystem assumptions, vendor integrations, automatic scheduling, virality guarantees, or hidden rewrite loops.
 - Keep content capabilities inside the existing Architect → Specialist → Reviewer → Human boundary.
+- Treat `docs/UX_BENCHMARK.md` as a release gate. Do not accept a surface that
+  merely exposes metadata if it does not help a creator decide what to say or
+  what to improve.
+- When repeated UX findings show a mismatch between system capability and user
+  mental model, fix the product language and the responsible agent contract
+  together. Do not patch only the visual symptom.
 
 ## Definition of done for the hackathon
 
-The product must be understandable from the UI, runnable locally without a cloud key, faithful to the documented Architect → Specialist → Reviewer flow, safe at the human gate, and supported by a clean test/demo handoff.
+The product must be understandable from the UI, useful from an incomplete idea,
+runnable locally without a cloud key, faithful to the documented Content
+Architect → Specialist → Reviewer → Human flow, benchmarkable with explainable
+checks, safe at the human gate, and supported by a clean test/demo handoff.

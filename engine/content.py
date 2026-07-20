@@ -312,6 +312,12 @@ def grade_drafts(
     issues: list[str] = []
     recommendations: list[str] = []
     violations = 0
+    # Use the actual draft text for signals that can be explained to a human.
+    # Grounding remains conservative when the source cannot be inspected here.
+    draft_openings = {
+        " ".join(str(getattr(draft, "text", "")).split()).lower()[:120]
+        for draft in drafts
+    }
     for draft in drafts:
         draft.constraint_violations.clear()
         if profile.max_chars is not None and draft.chars > profile.max_chars:
@@ -331,11 +337,22 @@ def grade_drafts(
     if not recommendations:
         recommendations.append("Compare the hook, audience fit, and next step before making the human decision.")
 
+    if len(drafts) > 1 and len(draft_openings) < len(drafts):
+        issues.append("Two or more variants begin with the same opening, so the comparison may be less useful.")
+        recommendations.append("Choose a direction with a meaningfully different opening before approval.")
+
     scores = {
         "grounding": 8 if material_supplied else 5,
         "platform_fit": 8 if not violations else 4,
         "voice_fit": 7 if brand_profile and brand_profile.voice_traits else 5,
-        "actionability": 6,
+        "actionability": min(
+            9,
+            6 + sum(
+                1
+                for draft in drafts
+                if re.search(r"\b(next step|start with|try|invite|reply|comment|follow)\b", str(getattr(draft, "text", "")).lower())
+            ) // max(1, len(drafts)),
+        ),
     }
     overall = round(sum(scores.values()) / len(scores))
     return QualityReport(

@@ -31,6 +31,20 @@ web/  →  studio/api.py  →  studio/workflow.py  →  engine/providers/
 6. The workflow records provider/model metadata, inputs, prompts, usage, drafts, hooks, quality report, plan, review, skill versions, and `awaiting_approval` status.
 7. A human decision is appended to the same record. Publication is not part of the Studio MVP.
 
+## Benchmark boundary
+
+The Reviewer produces two related outputs: human-readable review notes and a
+structured `quality_report`. The report is intentionally conservative and
+provider-neutral. It checks grounding, platform fit, voice fit, actionability,
+length constraints, and whether requested alternatives are meaningfully
+distinct. The frontend presents these as a content benchmark with its method,
+issues, and recommendations. It is not a model-confidence score, virality
+prediction, or automatic approval gate.
+
+The benchmark belongs at the review boundary because it explains why a human
+should inspect or revise a draft. It must not silently rewrite content or
+change the decision state.
+
 ## Persistence
 
 Run records are JSON files under `data/runs/YYYY-MM-DD/<run_id>.json`. Writes are atomic through a temporary sibling file and replacement. The optional creator profile is stored at `data/brand-profile.json`, then snapshotted into runs. JSON remains authoritative if an index or database is added later; any derived index must be rebuildable.

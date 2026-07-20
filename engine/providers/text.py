@@ -282,10 +282,10 @@ def _demo_draft(
     clean_goal = " ".join(goal.strip().split()).rstrip("?.!")
     topic = clean_goal
     lowered = clean_goal.lower()
-    for prefix in ("how do i ", "how to ", "write a post about ", "create a post about "):
-        if lowered.startswith(prefix):
-            topic = clean_goal[len(prefix):].strip()
-            break
+    prefixes = ("how do i ", "how to ", "write a post about ", "create a post about ")
+    matched_prefix = next((candidate for candidate in prefixes if lowered.startswith(candidate)), None)
+    if matched_prefix:
+        topic = clean_goal[len(matched_prefix):].strip()
     source = " ".join(material.strip().split())
     if source.startswith("(No source material supplied"):
         source = "No source material supplied. Add one fact or example from your experience before approval."
@@ -298,9 +298,8 @@ def _demo_draft(
     if outcome_text.lower().startswith("teach or help"):
         outcome_text = "help the audience understand something useful"
     outcome_text = outcome_text.rstrip(". ")
-    hook = hook.replace("Not specified; infer a reasonable audience from the idea.", audience_text)
+    hook = hook.replace("Not specified; infer a reasonable audience from the idea.", audience_text).replace("??", "?")
     variant_key = variant.lower()
-    label = f"{variant.title()} draft for {goal}"
 
     if variant_key == "reflective":
         body = (
@@ -326,14 +325,19 @@ def _demo_draft(
             f"Give {audience_text} a practical way to respond or try it."
         )
     else:
+        direct_opening = (
+            f"A useful post about {topic.lower()} starts with the clearest practical point."
+            if matched_prefix in ("write a post about ", "create a post about ")
+            else f"A useful way to approach {topic.lower()} is to start with the clearest practical step."
+        )
         body = (
-            f"Trying to {topic.lower()}? Start with the clearest useful step.\n\n"
+            f"{direct_opening}\n\n"
             f"Here is the context to work from: {source}. "
             f"Turn it into one concrete recommendation for {audience_text}, then tell the reader what to do next.\n\n"
             f"Next step: {outcome_text}."
         )
 
-    return f"{label}\n\n{body}\n\nPlatform: {platform}."
+    return f"{body}\n\nPlatform: {platform}."
 
 
 def resolve_model(provider: TextProvider, requested_model: str) -> str:

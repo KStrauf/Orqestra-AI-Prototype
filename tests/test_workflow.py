@@ -31,8 +31,8 @@ class WorkflowTests(unittest.TestCase):
             [draft.draft_id for draft in loaded.drafts],
             [f"{loaded.run_id}#1", f"{loaded.run_id}#2"],
         )
-        self.assertIn("Direct draft", loaded.drafts[0].text)
-        self.assertIn("Reflective draft", loaded.drafts[1].text)
+        self.assertIn("A useful post about today's build", loaded.drafts[0].text)
+        self.assertIn("useful lesson", loaded.drafts[1].text)
         self.assertIn("ready for human approval", result.review_text)
         self.assertEqual(loaded.review, result.review_text)
         self.assertEqual(loaded.content_brief.platform, "LinkedIn")

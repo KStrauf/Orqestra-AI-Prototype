@@ -2,7 +2,7 @@
 
 ## Product statement
 
-Orqestra Studio is a small, transparent content workspace for turning an idea, source material, or both into reviewable platform-native drafts. It makes the creative brief, agent handoffs, hook directions, draft variants, reviewer feedback, provider, and human decision visible in one place.
+Orqestra Studio is a transparent, UX-first AI content and benchmarking workspace for turning an idea, source material, or both into reviewable platform-native drafts. It makes the creative brief, agent handoffs, hook directions, draft variants, benchmark evidence, reviewer feedback, provider, and human decision visible in one place.
 
 The product is designed around a simple promise: AI can do useful creative work while a person retains context and control before anything leaves the workspace.
 
@@ -19,6 +19,9 @@ The primary user is a solo creator, operator, or small team member who has an id
 5. Approve, edit, or reject a selected draft.
 6. Reopen the durable run record and understand what happened.
 
+The Reviewer benchmark is part of the product experience. It identifies where
+to focus human attention; it does not predict engagement or replace judgment.
+
 ## Product qualities
 
 - Reviewable: intermediate work is shown instead of being hidden behind one final answer.
@@ -28,6 +31,7 @@ The primary user is a solo creator, operator, or small team member who has an id
 - Traceable: each run records inputs, model/provider metadata, prompts, outputs, decisions, and timing.
 - Replaceable: orchestration depends on a small text-provider contract, not a vendor SDK.
 - Demo-friendly: a new judge can reach the value proposition in one happy-path run.
+- Benchmarkable: the work is evaluated with visible, explainable editorial checks.
 
 ## Product boundary
 
