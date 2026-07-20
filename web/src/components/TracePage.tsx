@@ -39,7 +39,7 @@ export function TracePage({ run, onGoHistory }: TracePageProps) {
           </div>
           <DecisionTimeline run={run} />
         </div>
-        <aside className="trace-facts"><span className="eyebrow">RUN FACTS</span><div><span>Provider</span><strong>{run.provider}</strong></div><div><span>Model</span><strong>{run.model}</strong></div><div><span>Status</span><strong>{run.status.replaceAll("_", " ")}</strong></div><div><span>Started</span><strong>{formatTimestamp(run.started_at)}</strong></div><div><span>Usage</span><strong>{run.usage ? `${run.usage.input_tokens + run.usage.output_tokens} tokens` : "Local preview"}</strong></div></aside>
+        <aside className="trace-facts"><span className="eyebrow">RUN FACTS</span><div><span>Content platform</span><strong>{run.content_platform || "General"}</strong></div><div><span>Provider</span><strong>{run.provider}</strong></div><div><span>Model</span><strong>{run.model}</strong></div><div><span>Status</span><strong>{run.status.replaceAll("_", " ")}</strong></div><div><span>Started</span><strong>{formatTimestamp(run.started_at)}</strong></div><div><span>Usage</span><strong>{run.usage ? `${run.usage.input_tokens + run.usage.output_tokens} tokens` : "Local preview"}</strong></div></aside>
       </section>
       <RunArtifacts run={run} selectedDraft={selectedDraft} selectedDecision={selectedDecision} />
     </div>

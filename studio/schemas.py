@@ -14,10 +14,14 @@ class CreateRunRequest(BaseModel):
     """Inputs accepted by the Studio workflow composer."""
 
     goal: str
-    material: str
+    material: str = ""
     material_name: str = "workflow-material"
     variants: list[str] = Field(default_factory=lambda: ["direct", "reflective"])
     platform: str = "general"
+    audience: str = ""
+    outcome: str = ""
+    tone: str = "Clear and practical"
+    brief: str = ""
 
 
 class DecisionRequest(BaseModel):
@@ -51,6 +55,35 @@ class DraftResponse(BaseModel):
     text: str
     chars: int
     constraint_violations: list[str] = Field(default_factory=list)
+    angle: str = ""
+    hook: str = ""
+    cta: str = ""
+    platform_fit: str = ""
+
+
+class ContentBriefResponse(BaseModel):
+    audience: str
+    outcome: str
+    platform: str
+    tone: str
+    core_idea: str
+    angles: list[str] = Field(default_factory=list)
+    assumptions: list[str] = Field(default_factory=list)
+
+
+class ReviewReportResponse(BaseModel):
+    summary: str
+    strongest_draft_id: str | None = None
+    strengths: list[str] = Field(default_factory=list)
+    risks: list[str] = Field(default_factory=list)
+    recommendations: list[str] = Field(default_factory=list)
+
+
+class RunEventResponse(BaseModel):
+    stage: str
+    status: str
+    at: str
+    summary: str
 
 
 class DecisionResponse(BaseModel):
@@ -85,6 +118,13 @@ class RunResponse(BaseModel):
     model: str
     temperature: float
     content_platform: str = "general"
+    audience: str = ""
+    outcome: str = ""
+    tone: str = "Clear and practical"
+    brief: str = ""
+    content_brief: ContentBriefResponse | None = None
+    review_report: ReviewReportResponse | None = None
+    events: list[RunEventResponse] = Field(default_factory=list)
     system_prompt: str
     user_prompt: str
     inputs: list[InputResponse] = Field(default_factory=list)

@@ -35,6 +35,14 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn("Reflective draft", loaded.drafts[1].text)
         self.assertIn("ready for human approval", result.review_text)
         self.assertEqual(loaded.review, result.review_text)
+        self.assertEqual(loaded.content_brief.platform, "LinkedIn")
+        self.assertEqual(loaded.content_brief.core_idea, request.goal)
+        self.assertEqual(loaded.drafts[0].angle, "Clear announcement")
+        self.assertEqual(
+            [event.stage for event in loaded.events],
+            ["architect", "specialist", "reviewer", "human"],
+        )
+        self.assertTrue(loaded.review_report.recommendations)
         self.assertTrue(result.agent_plan)
         self.assertEqual(loaded.agent_plan, result.agent_plan)
         self.assertEqual(len(provider.calls), 4)
@@ -44,17 +52,11 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn("Platform: LinkedIn", provider.calls[-1]["user_prompt"])
         self.assertIsNotNone(loaded.usage)
 
-    def test_empty_workflow_inputs_are_rejected(self) -> None:
+    def test_empty_goal_is_rejected(self) -> None:
         with self.assertRaisesRegex(ValueError, "goal cannot be empty"):
             run_content_workflow(
                 Path("data/runs"),
                 ContentWorkflowRequest(goal="", material="some material"),
-            )
-
-        with self.assertRaisesRegex(ValueError, "material cannot be empty"):
-            run_content_workflow(
-                Path("data/runs"),
-                ContentWorkflowRequest(goal="Do work", material=""),
             )
 
         with self.assertRaisesRegex(ValueError, "platform cannot be empty"):
@@ -62,6 +64,22 @@ class WorkflowTests(unittest.TestCase):
                 Path("data/runs"),
                 ContentWorkflowRequest(goal="Do work", material="Some notes", platform=" "),
             )
+
+    def test_goal_only_workflow_uses_the_idea_as_the_creative_brief(self) -> None:
+        with TemporaryDirectory() as temporary:
+            result = run_content_workflow(
+                Path(temporary) / "runs",
+                ContentWorkflowRequest(
+                    goal="Turn this idea into a useful post",
+                    material="",
+                    platform="LinkedIn",
+                ),
+                MockProvider(),
+            )
+
+        self.assertEqual(result.record.inputs[0].path, "idea-brief")
+        self.assertEqual(result.record.inputs[0].chars, 0)
+        self.assertIn("No source material supplied", result.record.drafts[0].text)
 
 
 if __name__ == "__main__":

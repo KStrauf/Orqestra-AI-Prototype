@@ -13,6 +13,35 @@ export interface Draft {
   text: string;
   chars: number;
   constraint_violations: string[];
+  angle?: string;
+  hook?: string;
+  cta?: string;
+  platform_fit?: string;
+}
+
+export interface ContentBrief {
+  audience: string;
+  outcome: string;
+  platform: string;
+  tone: string;
+  core_idea: string;
+  angles: string[];
+  assumptions: string[];
+}
+
+export interface ReviewReport {
+  summary: string;
+  strongest_draft_id?: string | null;
+  strengths: string[];
+  risks: string[];
+  recommendations: string[];
+}
+
+export interface RunEvent {
+  stage: string;
+  status: string;
+  at: string;
+  summary: string;
 }
 
 export interface RunInput {
@@ -50,6 +79,13 @@ export interface StudioRun {
   model: string;
   temperature: number;
   content_platform?: string;
+  audience?: string;
+  outcome?: string;
+  tone?: string;
+  brief?: string;
+  content_brief?: ContentBrief | null;
+  review_report?: ReviewReport | null;
+  events?: RunEvent[];
   inputs: RunInput[];
   status: RunStatus;
   agent_plan: string | null;
@@ -86,6 +122,10 @@ export interface CreateWorkflowInput {
   material_name: string;
   variants: string[];
   platform: string;
+  audience?: string;
+  outcome?: string;
+  tone?: string;
+  brief?: string;
 }
 
 export interface DecisionInput {

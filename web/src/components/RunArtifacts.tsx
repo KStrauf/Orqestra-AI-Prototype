@@ -40,6 +40,21 @@ export function RunArtifacts({ run, selectedDraft, selectedDecision }: RunArtifa
         </div>
         <span className="artifact-count">{run.drafts.length} drafts · {run.decisions.length} decisions</span>
       </div>
+      {run.content_brief && (
+        <article className="artifact-card artifact-brief">
+          <div className="artifact-card-heading">
+            <span className="eyebrow">CONTENT BRIEF</span>
+            <span className="artifact-meta">{run.content_brief.platform}</span>
+          </div>
+          <div className="brief-facts">
+            <div><span>Audience</span><strong>{run.content_brief.audience}</strong></div>
+            <div><span>Outcome</span><strong>{run.content_brief.outcome}</strong></div>
+            <div><span>Voice</span><strong>{run.content_brief.tone}</strong></div>
+          </div>
+          <p className="artifact-copy"><strong>Core idea:</strong> {run.content_brief.core_idea}</p>
+          <div className="brief-angle-list"><span className="eyebrow">DRAFT ANGLES</span>{run.content_brief.angles.map((angle) => <span key={angle}>{angle}</span>)}</div>
+        </article>
+      )}
       <div className="artifact-grid">
         <article className="artifact-card artifact-source">
           <div className="artifact-card-heading">
@@ -48,10 +63,14 @@ export function RunArtifacts({ run, selectedDraft, selectedDecision }: RunArtifa
           </div>
           <strong>{input?.path || "Workflow material"}</strong>
           <p className="artifact-meta">SHA-256 {shortHash(input?.sha256 || "")}</p>
-          <details className="artifact-disclosure">
-            <summary>{input?.content ? "View source material" : "Source material unavailable"}</summary>
-            {input?.content && <p className="artifact-copy artifact-scroll">{input.content}</p>}
-          </details>
+          {input?.content ? (
+            <details className="artifact-disclosure">
+              <summary>View source material</summary>
+              <p className="artifact-copy artifact-scroll">{input.content}</p>
+            </details>
+          ) : (
+            <p className="artifact-meta">Idea-only brief. The team worked from the goal above.</p>
+          )}
         </article>
 
         <article className="artifact-card artifact-drafts">
@@ -76,6 +95,7 @@ export function RunArtifacts({ run, selectedDraft, selectedDecision }: RunArtifa
             <span className="artifact-meta">{selectedDraft?.chars ?? 0} chars</span>
           </div>
           <strong>{selectedDraft?.variant || "No draft selected"}</strong>
+          {selectedDraft?.angle && <span className="draft-angle">{selectedDraft.angle}</span>}
           <p className="artifact-copy artifact-scroll">{selectedDraft?.text || "Select a draft above to inspect its full text."}</p>
           <div className="why-panel">
             <span className="eyebrow">WHY THIS DRAFT</span>
@@ -89,7 +109,8 @@ export function RunArtifacts({ run, selectedDraft, selectedDecision }: RunArtifa
             <span className="eyebrow">REVIEWER NOTES</span>
             <span className="artifact-meta">Reviewer output</span>
           </div>
-          <p className="artifact-copy">{run.review || "No reviewer notes were recorded."}</p>
+          <p className="artifact-copy">{run.review_report?.summary || run.review || "No reviewer notes were recorded."}</p>
+          {run.review_report && <div className="why-panel"><span className="eyebrow">RECOMMENDED NEXT STEP</span><p>{run.review_report.recommendations[0] || "Compare the drafts and make the final decision."}</p></div>}
           <div className="why-panel">
             <span className="eyebrow">AGENT PLAN</span>
             <p>{run.agent_plan || "No Architect plan was recorded."}</p>

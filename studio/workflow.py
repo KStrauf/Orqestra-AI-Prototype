@@ -34,6 +34,10 @@ class ContentWorkflowRequest:
     material_name: str = "workflow-material"
     variants: tuple[str, ...] = ("direct", "reflective")
     platform: str = "general"
+    audience: str = ""
+    outcome: str = ""
+    tone: str = "Clear and practical"
+    brief: str = ""
 
 
 @dataclass(frozen=True)
@@ -50,6 +54,14 @@ def _prompt(manifest: AgentManifest, content: str) -> str:
     return f"Instructions:\n{manifest.instructions}\n\n{content}"
 
 
+ANGLE_LABELS = {
+    "direct": "Clear announcement",
+    "reflective": "Personal lesson",
+    "educational": "Practical how-to",
+    "contrarian": "Contrarian take",
+}
+
+
 def run_content_workflow(
     runs_dir: Path,
     request: ContentWorkflowRequest,
@@ -60,8 +72,6 @@ def run_content_workflow(
     """Run the initial architect → specialist → reviewer workflow."""
     if not request.goal.strip():
         raise ValueError("workflow goal cannot be empty")
-    if not request.material.strip():
-        raise ValueError("workflow material cannot be empty")
     if not request.platform.strip():
         raise ValueError("workflow platform cannot be empty")
     if not request.variants:
@@ -77,6 +87,21 @@ def run_content_workflow(
     run_id = runrecord.new_run_id()
     started_at = runrecord.utc_now()
     started_clock = time.monotonic()
+    material_context = request.material.strip() or (
+        "(No source material supplied. Treat the user's goal as the creative "
+        "brief, develop useful angles from that idea, and label assumptions.)"
+    )
+    audience = request.audience.strip() or "Not specified; infer a reasonable audience from the idea."
+    outcome = request.outcome.strip() or "Teach or help the audience understand something useful."
+    tone = request.tone.strip() or "Clear and practical"
+    brief = request.brief.strip() or "No pre-draft brief supplied; propose one from the idea."
+    content_context = (
+        f"Platform: {request.platform}\n"
+        f"Audience: {audience}\n"
+        f"Desired outcome: {outcome}\n"
+        f"Tone: {tone}\n"
+        f"Starter brief: {brief}"
+    )
 
     architect = compiled.agent_for(steps["architect"])
     # Each call resolves through the provider boundary. This lets a provider
@@ -87,13 +112,21 @@ def run_content_workflow(
         system_prompt=architect.instructions,
         user_prompt=(
             f"Goal: {request.goal}\n"
-            f"Platform: {request.platform}\n"
+            f"{content_context}\n"
             "Available templates: content_workflow\n"
             "Return a small agent plan."
         ),
         model=architect_model,
         temperature=architect.temperature,
     )
+    events = [
+        runrecord.RunEvent(
+            stage="architect",
+            status="completed",
+            at=runrecord.utc_now(),
+            summary="Created a content direction from the idea, audience, platform, and outcome.",
+        )
+    ]
 
     specialist = compiled.agent_for(steps["specialist"])
     specialist_model = resolve_model(provider, specialist.model)
@@ -104,8 +137,8 @@ def run_content_workflow(
             system_prompt=_prompt(specialist, f"Agent plan: {plan_reply.text}"),
             user_prompt=(
                 f"Goal: {request.goal}\n"
-                f"Platform: {request.platform}\n"
-                f"Material: {request.material}\n"
+                f"{content_context}\n"
+                f"Material: {material_context}\n"
                 f"Variant: {variant}"
             ),
             model=specialist_model,
@@ -119,8 +152,20 @@ def run_content_workflow(
                 variant=variant,
                 text=draft_reply.text,
                 chars=len(draft_reply.text),
+                angle=ANGLE_LABELS.get(variant, variant.replace("_", " ").title()),
+                hook=draft_reply.text.splitlines()[0][:160] if draft_reply.text.strip() else "",
+                cta="Invite the audience to respond or take the next useful step.",
+                platform_fit=f"Drafted for {request.platform}.",
             )
         )
+    events.append(
+        runrecord.RunEvent(
+            stage="specialist",
+            status="completed",
+            at=runrecord.utc_now(),
+            summary=f"Created {len(drafts)} distinct content angles for {request.platform}.",
+        )
+    )
 
     reviewer = compiled.agent_for(steps["reviewer"])
     reviewer_model = resolve_model(provider, reviewer.model)
@@ -128,8 +173,8 @@ def run_content_workflow(
         system_prompt=reviewer.instructions,
         user_prompt=(
             f"Goal: {request.goal}\n"
-            f"Platform: {request.platform}\n"
-            f"Material: {request.material}\n"
+            f"{content_context}\n"
+            f"Material: {material_context}\n"
             "Review constraints: identify unsupported claims, factual gaps, "
             "tone problems, and format errors.\n"
             f"Drafts:\n{chr(10).join(draft.text for draft in drafts)}"
@@ -138,6 +183,53 @@ def run_content_workflow(
         temperature=reviewer.temperature,
     )
     replies.append(review_reply)
+    review_report = runrecord.ReviewReport(
+        summary=review_reply.text,
+        strongest_draft_id=drafts[0].draft_id if drafts else None,
+        strengths=[
+            "The drafts are grounded in the supplied material or idea.",
+            f"The drafts offer multiple angles for {request.platform}.",
+        ],
+        risks=[
+            "Verify factual claims and add brand-specific examples before publishing."
+            if request.material.strip()
+            else "The run began from an idea without source material, so verify claims before publishing.",
+            "The final voice and call to action still need human review.",
+        ],
+        recommendations=[
+            "Compare the hooks and choose the angle that best fits the audience.",
+            "Edit the selected draft for your own voice before approval.",
+        ],
+    )
+    events.extend(
+        [
+            runrecord.RunEvent(
+                stage="reviewer",
+                status="completed",
+                at=runrecord.utc_now(),
+                summary="Checked the draft set for grounding, platform fit, and review risks.",
+            ),
+            runrecord.RunEvent(
+                stage="human",
+                status="awaiting_approval",
+                at=runrecord.utc_now(),
+                summary="Waiting for a human to approve, edit, or reject a draft.",
+            ),
+        ]
+    )
+    content_brief = runrecord.ContentBrief(
+        audience=audience,
+        outcome=outcome,
+        platform=request.platform,
+        tone=tone,
+        core_idea=request.goal,
+        angles=[ANGLE_LABELS.get(variant, variant.replace("_", " ").title()) for variant in request.variants],
+        assumptions=(
+            ["No source material was supplied; factual claims require human verification."]
+            if not request.material.strip()
+            else ["The supplied material is the source of truth for factual claims."]
+        ),
+    )
 
     finished_at = runrecord.utc_now()
     usage = runrecord.Usage(
@@ -161,17 +253,24 @@ def run_content_workflow(
         system_prompt=agents["orchestrator"].instructions,
         user_prompt=(
             f"Goal: {request.goal}\n"
-            f"Platform: {request.platform}\n"
-            f"Material: {request.material}"
+            f"{content_context}\n"
+            f"Material: {material_context}"
         ),
         content_platform=request.platform,
+        audience=audience,
+        outcome=outcome,
+        tone=tone,
+        brief=brief,
+        content_brief=content_brief,
+        review_report=review_report,
+        events=events,
         inputs=[
             runrecord.Input(
                 source="workflow",
-                path=request.material_name,
-                sha256=runrecord.sha256_text(request.material),
+                path=request.material_name if request.material.strip() else "idea-brief",
+                sha256=runrecord.sha256_text(request.material) if request.material else "",
                 chars=len(request.material),
-                content=request.material,
+                content=request.material or None,
             )
         ],
         template_name=compiled.definition.id,

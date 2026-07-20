@@ -33,6 +33,11 @@ class StudioApiTests(unittest.IsolatedAsyncioTestCase):
             json={
                 "goal": "Write a launch post",
                 "material": "The Studio workflow is now testable.",
+                "platform": "LinkedIn",
+                "audience": "early-stage builders",
+                "outcome": "Build trust",
+                "tone": "Warm and personal",
+                "brief": "Explain why visible review matters.",
             },
         )
 
@@ -41,6 +46,10 @@ class StudioApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(created["status"], "awaiting_approval")
         self.assertEqual(created["provider"], "mock")
         self.assertEqual(len(created["drafts"]), 2)
+        self.assertEqual(created["content_platform"], "LinkedIn")
+        self.assertEqual(created["audience"], "early-stage builders")
+        self.assertEqual(created["content_brief"]["outcome"], "Build trust")
+        self.assertEqual([event["stage"] for event in created["events"]], ["architect", "specialist", "reviewer", "human"])
         self.assertIn("schema_version", created)
 
         loaded_response = await self.client.get(f"/api/studio/runs/{created['run_id']}")
@@ -87,7 +96,7 @@ class StudioApiTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_errors_include_normalized_envelope_and_legacy_detail(self) -> None:
         missing = await self.client.get("/api/studio/runs/not-a-real-run")
-        invalid = await self.client.post("/api/studio/runs", json={"goal": "missing material"})
+        invalid = await self.client.post("/api/studio/runs", json={"material": "missing goal"})
 
         self.assertEqual(missing.status_code, 404)
         self.assertEqual(missing.json()["detail"], "run not found")

@@ -5,6 +5,8 @@ interface ReviewPanelProps {
 }
 
 export function ReviewPanel({ run }: ReviewPanelProps) {
+  const report = run.review_report;
+
   return (
     <aside className="review-card" aria-labelledby="review-title">
       <div className="review-card-top">
@@ -12,12 +14,32 @@ export function ReviewPanel({ run }: ReviewPanelProps) {
         <span className="review-icon">✓</span>
       </div>
       <h3 id="review-title">Before you decide</h3>
-      <p>{run.review || "No reviewer notes recorded."}</p>
+      <p>{report?.summary || run.review || "No reviewer notes recorded."}</p>
+      {report && (
+        <div className="review-report">
+          <div>
+            <span className="eyebrow">WHAT WORKS</span>
+            <ul>{report.strengths.map((item) => <li key={item}>{item}</li>)}</ul>
+          </div>
+          <div>
+            <span className="eyebrow">WATCH FOR</span>
+            <ul>{report.risks.map((item) => <li key={item}>{item}</li>)}</ul>
+          </div>
+          <div>
+            <span className="eyebrow">RECOMMENDED NEXT STEP</span>
+            <ul>{report.recommendations.map((item) => <li key={item}>{item}</li>)}</ul>
+          </div>
+        </div>
+      )}
       <div className="plan-block">
         <span className="eyebrow">AGENT PLAN</span>
         <p>{run.agent_plan || "No plan recorded."}</p>
       </div>
       <div className="run-facts">
+        <div>
+          <span>Content platform</span>
+          <strong>{run.content_platform || "General"}</strong>
+        </div>
         <div>
           <span>Provider</span>
           <strong>{run.provider}</strong>

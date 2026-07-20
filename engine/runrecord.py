@@ -18,7 +18,7 @@ from typing import Any
 from engine.errors import DecisionError, PublicationError
 
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 
 # --- small helpers ---------------------------------------------------------
@@ -71,6 +71,44 @@ class Draft:
     text: str
     chars: int
     constraint_violations: list[str] = field(default_factory=list)
+    angle: str = ""
+    hook: str = ""
+    cta: str = ""
+    platform_fit: str = ""
+
+
+@dataclass
+class ContentBrief:
+    """The structured creative brief shared across the agent handoffs."""
+
+    audience: str
+    outcome: str
+    platform: str
+    tone: str
+    core_idea: str
+    angles: list[str] = field(default_factory=list)
+    assumptions: list[str] = field(default_factory=list)
+
+
+@dataclass
+class ReviewReport:
+    """Structured editorial feedback preserved alongside the raw review."""
+
+    summary: str
+    strongest_draft_id: str | None = None
+    strengths: list[str] = field(default_factory=list)
+    risks: list[str] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
+
+
+@dataclass
+class RunEvent:
+    """One human-readable stage event in a durable run trace."""
+
+    stage: str
+    status: str
+    at: str
+    summary: str
 
 
 @dataclass
@@ -112,6 +150,13 @@ class RunRecord:
     system_prompt: str
     user_prompt: str
     content_platform: str = "general"
+    audience: str = ""
+    outcome: str = ""
+    tone: str = "Clear and practical"
+    brief: str = ""
+    content_brief: ContentBrief | None = None
+    review_report: ReviewReport | None = None
+    events: list[RunEvent] = field(default_factory=list)
 
     finished_at: str | None = None
     duration_ms: int | None = None
@@ -213,6 +258,11 @@ def _load_nested(raw: dict[str, Any]) -> RunRecord:
         normalized_inputs.append(normalized)
     raw["inputs"] = [Input(**item) for item in normalized_inputs]
     raw["drafts"] = [Draft(**item) for item in raw.get("drafts", [])]
+    if raw.get("content_brief") is not None:
+        raw["content_brief"] = ContentBrief(**raw["content_brief"])
+    if raw.get("review_report") is not None:
+        raw["review_report"] = ReviewReport(**raw["review_report"])
+    raw["events"] = [RunEvent(**item) for item in raw.get("events", [])]
     raw["decisions"] = [Decision(**item) for item in raw.get("decisions", [])]
     raw["published"] = [Published(**item) for item in raw.get("published", [])]
     if raw.get("usage") is not None:

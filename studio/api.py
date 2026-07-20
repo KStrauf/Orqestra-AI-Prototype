@@ -124,6 +124,10 @@ def create_run(request: CreateRunRequest) -> RunResponse:
                 material_name=request.material_name,
                 variants=tuple(request.variants),
                 platform=request.platform,
+                audience=request.audience,
+                outcome=request.outcome,
+                tone=request.tone,
+                brief=request.brief,
             ),
             provider=_provider(),
         )

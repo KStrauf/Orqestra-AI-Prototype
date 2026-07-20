@@ -1,8 +1,9 @@
 interface TopBarProps {
   environmentLabel: string;
+  onNewRun: () => void;
 }
 
-export function TopBar({ environmentLabel }: TopBarProps) {
+export function TopBar({ environmentLabel, onNewRun }: TopBarProps) {
   return (
     <header className="topbar global-topbar">
       <a className="global-brand" href="#/" aria-label="Orqestra Studio home">
@@ -17,7 +18,7 @@ export function TopBar({ environmentLabel }: TopBarProps) {
           <span className="status-dot" />
           {environmentLabel}
         </span>
-        <a className="topbar-action primary" href="#/runs/new">New run</a>
+        <a className="topbar-action primary" href="#/runs/new" onClick={onNewRun}>New run</a>
         <a className="topbar-action" href="#/settings">Settings</a>
       </div>
     </header>

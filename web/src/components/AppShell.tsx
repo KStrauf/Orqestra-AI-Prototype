@@ -3,39 +3,32 @@ import { ContextPanel } from "./ContextPanel";
 import { MobileNav } from "./MobileNav";
 import { SideNav } from "./SideNav";
 import { TopBar } from "./TopBar";
-import type { RunSummary } from "../types";
 
 interface AppShellProps {
   children: ReactNode;
   context: ReactNode;
   environmentLabel: string;
-  runs: RunSummary[];
   activeRunId: string | null;
   activeRoute: string;
-  historyLoading: boolean;
-  onSelectRun: (run: RunSummary) => void;
+  onNewRun: () => void;
 }
 
 export function AppShell({
   children,
   context,
   environmentLabel,
-  runs,
   activeRunId,
   activeRoute,
-  historyLoading,
-  onSelectRun,
+  onNewRun,
 }: AppShellProps) {
   return (
     <div className="app-shell">
-      <TopBar environmentLabel={environmentLabel} />
+      <TopBar environmentLabel={environmentLabel} onNewRun={onNewRun} />
       <div className="shell-body">
         <SideNav
-          runs={runs}
           activeRunId={activeRunId}
           activeRoute={activeRoute}
-          loading={historyLoading}
-          onSelectRun={onSelectRun}
+          onNewRun={onNewRun}
         />
         <main className="main-content" id="workspace">{children}</main>
         <ContextPanel>{context}</ContextPanel>

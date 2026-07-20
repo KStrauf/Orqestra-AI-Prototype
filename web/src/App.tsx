@@ -56,6 +56,10 @@ function App() {
   const [goal, setGoal] = useState(initialGoal);
   const [material, setMaterial] = useState(initialMaterial);
   const [platform, setPlatform] = useState("LinkedIn");
+  const [audience, setAudience] = useState("");
+  const [outcome, setOutcome] = useState("");
+  const [tone, setTone] = useState("Clear and practical");
+  const [brief, setBrief] = useState("");
   const [run, setRun] = useState<StudioRun | null>(null);
   const [runCache, setRunCache] = useState<Record<string, StudioRun>>({});
   const [history, setHistory] = useState<RunSummary[]>([]);
@@ -64,8 +68,6 @@ function App() {
   const [editText, setEditText] = useState("");
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
-  const [historyLoading, setHistoryLoading] = useState(!isDemoMode);
-  const [loadingRunId, setLoadingRunId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -81,25 +83,21 @@ function App() {
       if (run?.run_id !== route.id) showRun(runCache[route.id]);
       return;
     }
-    setLoadingRunId(route.id);
     getRun(route.id)
       .then((loadedRun) => {
         setRunCache((current) => ({ ...current, [loadedRun.run_id]: loadedRun }));
         showRun(loadedRun);
       })
-      .catch((error) => setNotice(error instanceof Error ? error.message : "Unable to load this run"))
-      .finally(() => setLoadingRunId(null));
+      .catch((error) => setNotice(error instanceof Error ? error.message : "Unable to load this run"));
   }, [route.id, route.name]);
 
   useEffect(() => {
     if (isDemoMode) {
-      setHistoryLoading(false);
       return;
     }
     listRuns()
       .then(setHistory)
-      .catch((error) => setNotice(error instanceof Error ? error.message : "Unable to load run history"))
-      .finally(() => setHistoryLoading(false));
+      .catch((error) => setNotice(error instanceof Error ? error.message : "Unable to load run history"));
   }, []);
 
   const selectedDraft = useMemo(
@@ -125,14 +123,30 @@ function App() {
   function startQuickStart(nextGoal: string, nextMaterial: string) {
     setGoal(nextGoal);
     setMaterial(nextMaterial);
+    setAudience("");
+    setOutcome("");
+    setTone("Clear and practical");
+    setBrief("");
+    setNotice(null);
+    go("#/runs/new");
+  }
+
+  function startNewRun() {
+    setGoal("");
+    setMaterial("");
+    setPlatform("LinkedIn");
+    setAudience("");
+    setOutcome("");
+    setTone("Clear and practical");
+    setBrief("");
     setNotice(null);
     go("#/runs/new");
   }
 
   async function handleRun(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!goal.trim() || !material.trim()) {
-      setNotice("Add a goal and source material before running the team.");
+    if (!goal.trim()) {
+      setNotice("Start with the idea or outcome you want to turn into content.");
       return;
     }
     setBusy(true);
@@ -141,9 +155,13 @@ function App() {
       const nextRun = await createWorkflow({
         goal,
         material,
-        material_name: "studio-notes.md",
+        material_name: material.trim() ? "studio-notes.md" : "idea-brief",
         variants: ["direct", "reflective", "educational"],
         platform,
+        audience,
+        outcome,
+        tone,
+        brief,
       });
       setRunCache((current) => ({ ...current, [nextRun.run_id]: nextRun }));
       setHistory((current) => [summaryFromRun(nextRun), ...current.filter((item) => item.run_id !== nextRun.run_id)]);
@@ -185,7 +203,6 @@ function App() {
       return;
     }
     if (isDemoMode) return;
-    setLoadingRunId(summary.run_id);
     setNotice(null);
     try {
       const loadedRun = await getRun(summary.run_id);
@@ -194,8 +211,6 @@ function App() {
       go(`#/runs/${loadedRun.run_id}`);
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Unable to load this run");
-    } finally {
-      setLoadingRunId(null);
     }
   }
 
@@ -241,7 +256,7 @@ function App() {
       <div className="page-stack">
         <header className="page-header run-page-header"><div><span className="eyebrow">RUN / {run.run_id}</span><h1>{run.task}</h1><p>Compare the variants, read the review, and choose what happens next.</p></div><span className={`status-pill ${run.status}`}>{statusLabel(run.status)}</span></header>
         <section className="run-workspace" aria-labelledby="current-run-title">
-          <div className="run-header"><div><span className="eyebrow">CURRENT RUN</span><h2 id="current-run-title">{run.task}</h2></div><div className="run-header-meta"><span className="run-id">{run.run_id}</span></div></div>
+          <div className="run-summary-strip" id="current-run-title"><span><strong>{run.content_platform || "General"}</strong> content</span><span>{run.drafts.length} draft angles</span><span>Human review required</span></div>
           <PipelinePanel run={run} />
           <div className="content-grid"><div><DraftComparison run={run} selectedDraftId={selectedDraftId} onSelect={selectDraft} />{selectedDraft && <DecisionControls draft={selectedDraft} mode={decisionMode} editText={editText} reason={reason} busy={busy} hasDecision={Boolean(selectedDecision)} onStart={startDecision} onCancel={() => setDecisionMode(null)} onEditTextChange={setEditText} onReasonChange={setReason} onSubmit={submitDecision} />}<RunArtifacts run={run} selectedDraft={selectedDraft} selectedDecision={selectedDecision} /></div></div>
         </section>
@@ -257,7 +272,7 @@ function App() {
   let page: ReactNode;
   switch (route.name) {
     case "new-run":
-      page = <NewRunPage goal={goal} material={material} platform={platform} busy={busy} onGoalChange={setGoal} onMaterialChange={setMaterial} onPlatformChange={setPlatform} onSubmit={handleRun} />;
+      page = <NewRunPage goal={goal} material={material} platform={platform} audience={audience} outcome={outcome} tone={tone} brief={brief} busy={busy} onGoalChange={setGoal} onMaterialChange={setMaterial} onPlatformChange={setPlatform} onAudienceChange={setAudience} onOutcomeChange={setOutcome} onToneChange={setTone} onBriefChange={setBrief} onSubmit={handleRun} />;
       break;
     case "run":
       page = renderRunWorkspace();
@@ -276,7 +291,7 @@ function App() {
   }
 
   return (
-    <AppShell environmentLabel={currentEnvironment} runs={history} activeRunId={run?.run_id ?? null} activeRoute={route.name} historyLoading={historyLoading || loadingRunId !== null} onSelectRun={handleHistorySelect} context={context}>
+    <AppShell environmentLabel={currentEnvironment} activeRunId={run?.run_id ?? null} activeRoute={route.name} onNewRun={startNewRun} context={context}>
       {notice && <div className="notice" role="status">{notice}</div>}
       {page}
     </AppShell>
