@@ -1,7 +1,7 @@
 # Content Skill Adaptation
 
-Orqestra Studio uses selected ideas from the Blotato content skills as
-provider-neutral capabilities. The source skills are reference material, not
+Orqestra Studio uses selected ideas from content skills as
+provider-neutral capabilities. The source skills are used as reference material, not
 runtime agents and not dependencies of this repository.
 
 ## What is included now
